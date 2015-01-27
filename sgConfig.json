@@ -1,0 +1,8 @@
+{
+    "thumbs": {
+        "cache": "./.sgCache",
+        "max_height": 150,
+        "max_width": 150,
+        "quality": 50
+    }
+}
