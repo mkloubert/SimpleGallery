@@ -4,5 +4,17 @@
         "max_height": 150,
         "max_width": 150,
         "quality": 50
-    }
+    },
+    
+    "users": [
+        {
+            "name": "user1",
+            "password": "pwd1"
+        },
+        
+        {
+            "name": "user2",
+            "password": "pwd2"
+        }
+    ]
 }
