@@ -1045,17 +1045,17 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
       {
     	  // content
           Object.defineProperty(SimpleGallery.elements, 'content', {
-        	    get: function() {
-        	        return jQuery('#sgContent');
-        	    },
+        	  get: function() {
+        	      return jQuery('#sgContent');
+        	  },
           });
 
           // info
           Object.defineProperty(SimpleGallery.elements, 'info', {
-        	    get: function() {
-        	        return this.content
-	                           .find('.sgGalleryInfo .panel-body');
-        	    },
+        	  get: function() {
+        	      return this.content
+	                         .find('.sgGalleryInfo .panel-body');
+        	  },
           });
 
           // thumbs
@@ -1076,9 +1076,9 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
           // title
           Object.defineProperty(SimpleGallery.elements, 'title', {
-        	    get: function() {
-        	        return jQuery('#sgNavbarTop .sgPageTitle, head title');
-        	    },
+              get: function() {
+        	      return jQuery('#sgNavbarTop .sgPageTitle, head title');
+        	  },
           });
       }
 
@@ -1129,48 +1129,49 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
               return newItem;
           };
-      
-          SimpleGallery.funcs.reloadThumbs = function() {
-                SimpleGallery.vars.imagesToLoad = [];
 
-                SimpleGallery.elements.info.html('');
-                SimpleGallery.elements.thumbs.html('');
+          SimpleGallery.funcs.initThumbList = function() {
+        	  SimpleGallery.vars.imagesToLoad = [];
 
-                var newPanel = $('<div class="panel panel-primary">' + 
-                		         '<div class="panel-heading">Thumbnails</div>' + 
-                		         '<div class="panel-body">' + 
-                		         '<div class="container-fluid">' + 
-                		         '<div class="row sgThumbItems">' + 
-                		         '</div>' + 
-                		         '</div>' + 
-                		         '</div>' + 
-                                 '</div>');
-
-                newPanel.appendTo(SimpleGallery.elements.thumbs);
-        
 <?php 
 
-        $allFiles = $sg->getFiles();
-        usort($allFiles,
-              array($sg, 'sortStringsCaseInsensitiveDesc'));
+        		        $allFiles = $sg->getFiles();
+        		        usort($allFiles,
+        		              array($sg, 'sortStringsCaseInsensitiveDesc'));
 
-        foreach ($allFiles as $file) {
-            if (!$sg->isImageFile($file)) {
-                continue;
-            }
-    
-            $jsFile = trim($file);
-            
+        		        foreach ($allFiles as $file) {
+        		            if (!$sg->isImageFile($file)) {
+        		                continue;
+        		            }
+
 ?>
-              SimpleGallery.vars.imagesToLoad.push(<?php echo $sg->encodeJs($jsFile); ?>);
+              SimpleGallery.vars.imagesToLoad.push(<?php echo $sg->encodeJs(trim($file)); ?>);
 <?php
-        }
+        		        }
 
-        unset($allFiles);
-        
+        		        unset($allFiles);
 ?>
 
               SimpleGallery.vars.totalImageCount = SimpleGallery.vars.imagesToLoad.length;
+          };
+      
+          SimpleGallery.funcs.reloadThumbs = function() {
+              this.initThumbList();
+
+              SimpleGallery.elements.info.html('');
+              SimpleGallery.elements.thumbs.html('');
+
+              var newPanel = $('<div class="panel panel-primary">' + 
+              		           '<div class="panel-heading">Thumbnails</div>' + 
+                		       '<div class="panel-body">' + 
+                		       '<div class="container-fluid">' + 
+                		       '<div class="row sgThumbItems">' + 
+                		       '</div>' + 
+                		       '</div>' + 
+                		       '</div>' + 
+                               '</div>');
+
+              newPanel.appendTo(SimpleGallery.elements.thumbs);
 
               setTimeout(function() {
                   SimpleGallery.funcs.loadNextImage();
