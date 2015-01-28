@@ -1162,7 +1162,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
             $jsFile = trim($file);
             
 ?>
-          SimpleGallery.vars.imagesToLoad.push(<?php echo $sg->encodeJs($jsFile); ?>);
+              SimpleGallery.vars.imagesToLoad.push(<?php echo $sg->encodeJs($jsFile); ?>);
 <?php
         }
 
