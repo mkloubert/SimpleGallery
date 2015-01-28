@@ -463,20 +463,11 @@ class SimpleGallery {
                         if ($this->isImageFile($imgFile)) {
                             $isCached = true;
                             
-                            $rebuildCacheItem = false;
-                            if (isset($_REQUEST['rc'])) {
-                            	$rebuildCacheItem = '1' == trim(strtolower($_REQUEST['rc']));
-                            }
-
-                            $img = null;
-                            if (!$rebuildCacheItem) {
-                            	$img = $this->getThumbFromCache($imgFile);
-                            }
-                            
+                            $img = $this->getThumbFromCache($imgFile);
                             if (!is_resource($img)) {
                                 $isCached = false;
                                 
-                                // get tresized image from file
+                                // get resized image from file
                                 $img = $this->resizeImageFromFile($imgFile,
                                                                   $this->Config->thumbs->max_width,
                                                                   $this->Config->thumbs->max_height);
@@ -602,25 +593,6 @@ class SimpleGallery {
         }
         
         return false;
-    }
-    
-    /**
-     * Gets if the clients requests the rebuild of the thumb cache.
-     * 
-     * @return boolean Requests thumb cache or not.
-     */
-    public function isRebuildOfThumbCacheRequested() {
-    	foreach (getallheaders() as $headerName => $headerVal) {
-    		switch (trim(strtolower($headerName))) {
-    			case 'cache-control':
-    			case 'pragma':
-    				// yes
-    				return 'no-cache' == trim(strtolower($headerVal));
-    		}
-    	}
-    	
-    	// no
-    	return false;
     }
     
     /**
@@ -1139,8 +1111,6 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               var newCaptionLink = newImgLink.clone();
               newCaptionLink.text(file);
 
-              var rc = <?php echo $sg->encodeJs(!$sg->isRebuildOfThumbCacheRequested() ? '0' : '1'); ?>;
-              
               // thumb image
               var newImg = $('<img />').load(function() {
                                                  SimpleGallery.funcs.loadNextImage();
@@ -1148,8 +1118,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                        .error(function() {
                                                   SimpleGallery.funcs.loadNextImage();
                                               });
-              newImg.attr('src', '<?php echo SG_SELF; ?>?m=1&f={0}&rc={1}'.format(encodeURIComponent(file),
-            		                                                              encodeURIComponent(rc)));
+              newImg.attr('src', '<?php echo SG_SELF; ?>?m=1&f={0}'.format(encodeURIComponent(file)));
               newImg.appendTo(newImgLink);
 
               var newCaption = $('<div class="caption">' + 
