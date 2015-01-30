@@ -1168,19 +1168,19 @@ if ($executeGallery) {
         }
         
         #sgNavbarBottom .navbar-text {
-        	color: #fff;
-        	line-height: 3.25em;
-        	margin-top: 0.25em;
+            color: #fff;
+            line-height: 3.25em;
+            margin-top: 0.25em;
         }
         
         #sgNavbarBottom .navbar-text {
-        	color: #fff;
-        	line-height: 3.25em;
-        	margin-top: 0.25em;
+            color: #fff;
+            line-height: 3.25em;
+            margin-top: 0.25em;
         }
         
         #sgNavbarBottom .navbar-right {
-        	margin-right: 1em;
+            margin-right: 1em;
         }
         
         #sgContent .sgThumbList .sgThumbItems img {
@@ -1188,10 +1188,10 @@ if ($executeGallery) {
         }
         
         #sgContent .sgGalleryInfo .sgInfoTable td.sgColLeft {
-        	font-weight: bold;
+            font-weight: bold;
             padding-right: 1em;
             text-align: right;
-        	width: 10em;
+            width: 10em;
         }
         
         #sgContent .sgThumbList .sgThumbItems .sgThumbItem .thumbnail {
@@ -1300,66 +1300,66 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
       // elements
       SimpleGallery.elements = {};
       {
-    	  // content
+          // content
           Object.defineProperty(SimpleGallery.elements, 'content', {
-        	  get: function() {
-        	      return jQuery('#sgContent');
-        	  },
+              get: function() {
+                  return jQuery('#sgContent');
+              },
           });
 
           // info
           Object.defineProperty(SimpleGallery.elements, 'info', {
-        	  get: function() {
-        	      return this.content
-	                         .find('.sgGalleryInfo .panel-body');
-        	  },
+              get: function() {
+                  return this.content
+                             .find('.sgGalleryInfo .panel-body');
+              },
           });
 
           // infoTable
           Object.defineProperty(SimpleGallery.elements, 'infoTable', {
-        	  get: function() {
-        	      return this.info
-	                         .find('.sgInfoTable');
-        	  },
+              get: function() {
+                  return this.info
+                             .find('.sgInfoTable');
+              },
           });
 
           // thumbs
           Object.defineProperty(SimpleGallery.elements, 'thumbs', {
               get: function() {
-        	       return this.content
-        	                  .find('.sgThumbList');
-        	  },
+                   return this.content
+                              .find('.sgThumbList');
+              },
           });
 
           // thumb items
           Object.defineProperty(SimpleGallery.elements, 'thumbItems', {
               get: function() {
-        	       return this.thumbs
-        	                  .find('.panel-body .sgThumbItems');
-        	  },
+                   return this.thumbs
+                              .find('.panel-body .sgThumbItems');
+              },
           });
 
           // title
           Object.defineProperty(SimpleGallery.elements, 'title', {
               get: function() {
-        	      return jQuery('#sgNavbarTop .sgPageTitle, head title');
-        	  },
+                  return jQuery('#sgNavbarTop .sgPageTitle, head title');
+              },
           });
       }
 
       // events
       SimpleGallery.events = {};
       {
-    	  // text in filter (search) box changed
+          // text in filter (search) box changed
           SimpleGallery.events.filterChanged = function(e) {
               var tb = $(e); 
               
               setTimeout(function() {
-            	  SimpleGallery.funcs.filterThumbs(tb.val());
+                  SimpleGallery.funcs.filterThumbs(tb.val());
               }, 750);
           };
           
-    	  // page loaded
+          // page loaded
           SimpleGallery.events.pageLoaded = function() {
               SimpleGallery.funcs.reloadThumbs();
           };
@@ -1396,7 +1396,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               newImg.appendTo(newImgLink);
 
               var newCaption = $('<div class="caption">' + 
-            		             '<h5 class="sgFilename"></h5>' + 
+                                 '<h5 class="sgFilename"></h5>' + 
                                  '</div>');
               newCaption.find('h5').append(newCaptionLink);
               newCaption.appendTo(newThumb);
@@ -1410,12 +1410,12 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               {
                   if (file.geo) {
                       var newGeoBtn = $('<a href="#" class="btn btn-primary" role="button">' + 
-                    		            '<span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>' +  
-                    		            '</a>');
-  		              newGeoBtn.click(function() {
-  		            	  SimpleGallery.funcs.openMapWebsite(file.geo.lat,
-  		  		            	                             file.geo.long);
-  		              });
+                                        '<span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>' +  
+                                        '</a>');
+                        newGeoBtn.click(function() {
+                            SimpleGallery.funcs.openMapWebsite(file.geo.lat,
+                                                                 file.geo.long);
+                        });
                       newGeoBtn.appendTo(newBtnArea);
                   }
               }
@@ -1429,30 +1429,30 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
               var thumbItems = SimpleGallery.elements.thumbItems.find('.sgThumbItem');
               if (words.length < 1) {
-            	  thumbItems.show();
+                  thumbItems.show();
               }
               else {
-            	  thumbItems.each(function() {
-            		  SimpleGallery.funcs.updateThumbVisibility($(this), words);
+                  thumbItems.each(function() {
+                      SimpleGallery.funcs.updateThumbVisibility($(this), words);
                   });
               }
           };
 
           SimpleGallery.funcs.getFilterWordList = function(expr) {
               if (typeof expr == 'undefined') {
-            	  expr = $('#sgFilterTextbox').val();
+                  expr = $('#sgFilterTextbox').val();
               }
 
               expr = $.trim(expr);
 
               var words = [];
               if ('' != expr) {
-            	  words = expr.split(' ');
+                  words = expr.split(' ');
               }
 
               // make lowercase
               for (var i = 0; i < words.length; i++) {
-            	  words[i] = $.trim(words[i]).toLowerCase();
+                  words[i] = $.trim(words[i]).toLowerCase();
               }
 
               // get unique expressions
@@ -1463,7 +1463,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               if (1 == result.length) {
                   if ('' == result[i]) {
                       // remove empty element
-                	  result.pop();
+                      result.pop();
                   }
               }
 
@@ -1471,58 +1471,58 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
           };
 
           SimpleGallery.funcs.initThumbList = function() {
-        	  SimpleGallery.vars.imagesToLoad = [];
+              SimpleGallery.vars.imagesToLoad = [];
 
 <?php 
 
-        		        $allFiles = $sg->getFiles();
-        		        usort($allFiles,
-        		              array($sg, 'sortStringsCaseInsensitiveDesc'));
-        		        
-        		        $testIPTC = 0;
-        		        foreach ($allFiles as $file) {
-        		            if (!$sg->isImageFile($file)) {
-        		                continue;
-        		            }
-        		            
-        		            $searchExpr = array(trim(strtolower($file)));
-        		            
-        		            // try get GPS coordinates
-        		            $gps = null;
-        		            $exif = $sg->getExif($sg->getCurrentDirectory() . $file);
-        		            if (is_array($exif)) {
-        		            	$gps = $sg->getGps($exif);
-        		            }
-        		            
-        		            // try find more words for filter feature
-        		            // from IPTC data
-        		            $iptc = $sg->getIPTC($sg->getCurrentDirectory() . $file);
-        		            if (is_array($iptc)) {
-        		            	foreach (array('caption',
-        		            			       'city',
-        		            	               'country',
-        		            			       'creation_date',
-        		            		           'credit_byline_title',
-        		            			       'graphic_name',
-        		            			       'headline',
-        		            			       'photo_source',
-        		            			       'photog',
-        		            			       'source',
-        		            			       'state') as $iptcIdx) {
+                        $allFiles = $sg->getFiles();
+                        usort($allFiles,
+                              array($sg, 'sortStringsCaseInsensitiveDesc'));
+                        
+                        $testIPTC = 0;
+                        foreach ($allFiles as $file) {
+                            if (!$sg->isImageFile($file)) {
+                                continue;
+                            }
+                            
+                            $searchExpr = array(trim(strtolower($file)));
+                            
+                            // try get GPS coordinates
+                            $gps = null;
+                            $exif = $sg->getExif($sg->getCurrentDirectory() . $file);
+                            if (is_array($exif)) {
+                                $gps = $sg->getGps($exif);
+                            }
+                            
+                            // try find more words for filter feature
+                            // from IPTC data
+                            $iptc = $sg->getIPTC($sg->getCurrentDirectory() . $file);
+                            if (is_array($iptc)) {
+                                foreach (array('caption',
+                                               'city',
+                                               'country',
+                                               'creation_date',
+                                               'credit_byline_title',
+                                               'graphic_name',
+                                               'headline',
+                                               'photo_source',
+                                               'photog',
+                                               'source',
+                                               'state') as $iptcIdx) {
 
-        		            		if (!isset($iptc[$iptcIdx]) || empty($iptc[$iptcIdx])) {
-        		            			// no data
-        		            			continue;
-        		            		}
-        		            		
-        		            		$searchExpr = array_merge($searchExpr,
-        		            				                  $sg->getSearchItems($iptc[$iptcIdx]));
-        		            	}
-        		            }
+                                    if (!isset($iptc[$iptcIdx]) || empty($iptc[$iptcIdx])) {
+                                        // no data
+                                        continue;
+                                    }
+                                    
+                                    $searchExpr = array_merge($searchExpr,
+                                                              $sg->getSearchItems($iptc[$iptcIdx]));
+                                }
+                            }
 
-        		            // cleanup
-        		            $searchExpr = array_unique($searchExpr);
-        		            asort($searchExpr);
+                            // cleanup
+                            $searchExpr = array_unique($searchExpr);
+                            asort($searchExpr);
 
 ?>
               SimpleGallery.vars.imagesToLoad.push({
@@ -1531,9 +1531,9 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                   searchExpr: <?php echo $sg->encodeJs(implode(' ', $searchExpr)); ?>,
               });
 <?php
-        		        }
+                        }
 
-        		        unset($allFiles);
+                        unset($allFiles);
 ?>
 
               SimpleGallery.vars.totalImageCount = SimpleGallery.vars.imagesToLoad.length;
@@ -1545,7 +1545,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                   return;
               }
               
-        	  window.open(mapsUrl.format(encodeURIComponent(lat),
+              window.open(mapsUrl.format(encodeURIComponent(lat),
                                          encodeURIComponent(lon)),
                           '_blank');
           };
@@ -1557,24 +1557,24 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                               .text(SimpleGallery.vars.totalImageCount);
 
               var newPanel = $('<div class="panel panel-primary">' + 
-              		           '<div class="panel-heading">Thumbnails</div>' + 
-                		       '<div class="panel-body">' + 
-                		       '<div class="container-fluid">' + 
-                		       '<div class="row sgThumbItems">' + 
-                		       '</div>' + 
-                		       '</div>' + 
-                		       '</div>' + 
+                               '<div class="panel-heading">Thumbnails</div>' + 
+                               '<div class="panel-body">' + 
+                               '<div class="container-fluid">' + 
+                               '<div class="row sgThumbItems">' + 
+                               '</div>' + 
+                               '</div>' + 
+                               '</div>' + 
                                '</div>');
 
               newPanel.appendTo(SimpleGallery.elements.thumbs);
 
               if (SimpleGallery.vars.totalImageCount < 1) {
-            	  newPanel.find('.panel-body').text('No images found.');
+                  newPanel.find('.panel-body').text('No images found.');
               }
               else {
-	              setTimeout(function() {
-	                  SimpleGallery.funcs.loadNextImage();
-	              }, 1000);     
+                  setTimeout(function() {
+                      SimpleGallery.funcs.loadNextImage();
+                  }, 1000);     
               }        
           };
 
@@ -1618,7 +1618,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
           SimpleGallery.funcs.updateThumbVisibility = function(thumb, words) {
               if (!words) {
-            	  words = [];
+                  words = [];
               }
 
               if (words.length < 1) {
@@ -1632,16 +1632,16 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               for (var i = 0; i < words.length; i++) {
                   var w = words[i];
                   if (searchExpr.indexOf(w) < 0) {
-                	  showThumb = false;
+                      showThumb = false;
                       break;
                   }
               }
 
               if (showThumb) {
-            	  thumb.show();
+                  thumb.show();
               }
               else {
-            	  thumb.hide();
+                  thumb.hide();
               }
           };
       }
