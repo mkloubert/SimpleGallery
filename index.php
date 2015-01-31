@@ -172,7 +172,7 @@ class SimpleGallery {
      * @return boolean Feature is enabled or not.
      */
     public function canDownloadBasket() {
-    	return $this->Config->features->download;
+        return $this->Config->features->download;
     }
     
     /**
@@ -181,7 +181,7 @@ class SimpleGallery {
      * @return boolean Can handle favorites or not.
      */
     public function canManageFavorites() {
-    	return true;
+        return true;
     }
     
     /**
@@ -190,11 +190,11 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function clearFavorites() {
-    	if (!$this->canManageFavorites()) {
-    		return false;
-    	}
-    	
-    	return $this->unsetVar($this->Config->vars->favorites);
+        if (!$this->canManageFavorites()) {
+            return false;
+        }
+        
+        return $this->unsetVar($this->Config->vars->favorites);
     }
     
     /**
@@ -292,30 +292,30 @@ class SimpleGallery {
      * @return array The list of favorites or FALSE if an error occured.
      */
     public function getFavorites() {
-    	if (!$this->canManageFavorites()) {
-    		return false;
-    	}
-    	
-    	$result = array();
-    	
-    	$varName = $this->Config->vars->favorites;
-    	
-    	if ($this->issetVar($varName)) {
-			$b64 = trim($this->getVar($varName));
-			if ('' != $b64) {
-				$favList = @base64_decode($b64);
-				if (false !== $favList) {
-					foreach (explode("\n", $favList) as $favItem) {
-						$favItem = trim($favItem);
-						if (!empty($favItem)) {
-							$result[] = $favItem;
-						}
-					}
-				}
-			}
-    	}
+        if (!$this->canManageFavorites()) {
+            return false;
+        }
+        
+        $result = array();
+        
+        $varName = $this->Config->vars->favorites;
+        
+        if ($this->issetVar($varName)) {
+            $b64 = trim($this->getVar($varName));
+            if ('' != $b64) {
+                $favList = @base64_decode($b64);
+                if (false !== $favList) {
+                    foreach (explode("\n", $favList) as $favItem) {
+                        $favItem = trim($favItem);
+                        if (!empty($favItem)) {
+                            $result[] = $favItem;
+                        }
+                    }
+                }
+            }
+        }
 
-    	return $result;
+        return $result;
     }
     
     /**
@@ -613,7 +613,7 @@ class SimpleGallery {
      * @return string The full path of the temp directory.
      */
     public function getTempDirectory() {
-    	return sys_get_temp_dir();
+        return sys_get_temp_dir();
     }
     
     /**
@@ -731,15 +731,15 @@ class SimpleGallery {
      * @return mixed The value of the variable.
      */
     public function getVar($name, $defValue = null) {
-    	$name = $this->normalizeVarName($name);
-    	
-    	if ($this->isSessionRunning()) {
-    		return isset($_SESSION[$name]) ? $_SESSION[$name]
-    		                               : $defValue;
-    	}
-    	
-    	return isset($_COOKIE[$name]) ? $_COOKIE[$name]
-    		                          : $defValue;
+        $name = $this->normalizeVarName($name);
+        
+        if ($this->isSessionRunning()) {
+            return isset($_SESSION[$name]) ? $_SESSION[$name]
+                                           : $defValue;
+        }
+        
+        return isset($_COOKIE[$name]) ? $_COOKIE[$name]
+                                      : $defValue;
     }
     
     private function gps2Num($coordPart) {
@@ -796,42 +796,42 @@ class SimpleGallery {
                                 // correct orentation if needed
                                 $exif = $this->getExif($imgFile);
                                 if (is_array($exif)) {
-                                	foreach ($exif as $ek => $ev) {
-                                		$leaveFor = false;
-                                		
-                                		switch(trim(strtolower($ek))) {
-                                			case 'orientation':
-                                				{
-                                					$leaveFor = true;
-                                					
-                                					$rotatedImage = null;
-                                					switch (trim($ev)) {
-                                						case '3':
-                                							$rotatedImage = imagerotate($img, 180, 0);
-                                							break;
-                                					
-                                						case '6':
-                                							$rotatedImage = imagerotate($img, -90, 0);
-                                							break;
-                                					
-                                						case '8':
-                                							$rotatedImage = imagerotate($img, 90, 0);
-                                							break;
-                                					}
-                                					
-                                					if (is_resource($rotatedImage)) {
-                                						imagedestroy($img);
-                                					
-                                						$img = $rotatedImage;
-                                					}
-                                				}
-                                				break;
-                                		}
-                                		
-                                		if ($leaveFor) {
-                                			break;
-                                		}
-                                	}
+                                    foreach ($exif as $ek => $ev) {
+                                        $leaveFor = false;
+                                        
+                                        switch(trim(strtolower($ek))) {
+                                            case 'orientation':
+                                                {
+                                                    $leaveFor = true;
+                                                    
+                                                    $rotatedImage = null;
+                                                    switch (trim($ev)) {
+                                                        case '3':
+                                                            $rotatedImage = imagerotate($img, 180, 0);
+                                                            break;
+                                                    
+                                                        case '6':
+                                                            $rotatedImage = imagerotate($img, -90, 0);
+                                                            break;
+                                                    
+                                                        case '8':
+                                                            $rotatedImage = imagerotate($img, 90, 0);
+                                                            break;
+                                                    }
+                                                    
+                                                    if (is_resource($rotatedImage)) {
+                                                        imagedestroy($img);
+                                                    
+                                                        $img = $rotatedImage;
+                                                    }
+                                                }
+                                                break;
+                                        }
+                                        
+                                        if ($leaveFor) {
+                                            break;
+                                        }
+                                    }
                                 }    
                               
                                 $this->saveThumbToCache($img, $imgFile);
@@ -908,121 +908,121 @@ class SimpleGallery {
                 return true;  // mark as 'handled'
                 
             case '4':
-            	// toggle favorite state of a file
-            	{
-            		$jsonResult       = new stdClass();
-            		$jsonResult->code = null;
-            		$jsonResult->data = null;
-            		
-            		if ($this->canManageFavorites()) {
-            			$jsonResult->data = new stdClass();
-            			
-	            		if (isset($_POST['f'])) {
-	            			$filename = trim($_POST['f']);
-	            			if ('' != $filename) {
-		            			if ($this->toggleFavorite($filename)) {
-		            				$jsonResult->code = 0;
-		            			}
-		            			else {
-		            				$jsonResult->code = 1;
-		            			}
-		            			
-		            			$jsonResult->data->isFavorite = $this->isFavorite($filename);
-	            			}
-	            			else {
-	            				$jsonResult->code = 2;
-	            			}
-	            		}
-	            		else {
-	            			$jsonResult->code = 3;
-	            		}
-            		}
-            		else {
-            			$jsonResult->code = 4;
-            		}
-            		
-            		header('Content-type: application/json; charset=utf-8');
-            		echo json_encode($jsonResult);
-            	}
-            	return true;  // mark as 'handled'
-            	
+                // toggle favorite state of a file
+                {
+                    $jsonResult       = new stdClass();
+                    $jsonResult->code = null;
+                    $jsonResult->data = null;
+                    
+                    if ($this->canManageFavorites()) {
+                        $jsonResult->data = new stdClass();
+                        
+                        if (isset($_POST['f'])) {
+                            $filename = trim($_POST['f']);
+                            if ('' != $filename) {
+                                if ($this->toggleFavorite($filename)) {
+                                    $jsonResult->code = 0;
+                                }
+                                else {
+                                    $jsonResult->code = 1;
+                                }
+                                
+                                $jsonResult->data->isFavorite = $this->isFavorite($filename);
+                            }
+                            else {
+                                $jsonResult->code = 2;
+                            }
+                        }
+                        else {
+                            $jsonResult->code = 3;
+                        }
+                    }
+                    else {
+                        $jsonResult->code = 4;
+                    }
+                    
+                    header('Content-type: application/json; charset=utf-8');
+                    echo json_encode($jsonResult);
+                }
+                return true;  // mark as 'handled'
+                
             case '5':
-            	// clear favorites
-            	{
-            		$jsonResult       = new stdClass();
-            		$jsonResult->code = null;
-            		
-            		if ($this->canManageFavorites()) {
-            			if ($this->clearFavorites()) {
-            				$jsonResult->code = 0;
-            			}
-            			else {
-            				$jsonResult->code = 1;
-            			}
-            		}
-            		else {
-            			$jsonResult->code = 2;
-            		}
-            		
-            		header('Content-type: application/json; charset=utf-8');
-            		echo json_encode($jsonResult);
-            	}
-            	return true;  // mark as 'handled'
-            	
+                // clear favorites
+                {
+                    $jsonResult       = new stdClass();
+                    $jsonResult->code = null;
+                    
+                    if ($this->canManageFavorites()) {
+                        if ($this->clearFavorites()) {
+                            $jsonResult->code = 0;
+                        }
+                        else {
+                            $jsonResult->code = 1;
+                        }
+                    }
+                    else {
+                        $jsonResult->code = 2;
+                    }
+                    
+                    header('Content-type: application/json; charset=utf-8');
+                    echo json_encode($jsonResult);
+                }
+                return true;  // mark as 'handled'
+                
             case '6':
-            	// download basket
-            	if ($this->canDownloadBasket())
-            	{
-            		if (isset($_POST['fl'])) {
-            			$filesToDownload = array();
-            			
-            			$fileList = trim($_POST['fl']);
-            			if ('' != $fileList) {
-            				$fileArray = explode("\n", $fileList);
-            				foreach ($fileArray as $f) {
-            					// $f = $this->normalizeFilename($f);
-            					$f = trim($f);
-            					if (empty($f)) {
-            						continue;
-            					}
-            					
-            					if (!$this->isImageFile($f)) {
-            						continue;
-            					}
-            					
-            					$fp = realpath($this->getCurrentDirectory() . $f);
-            					if (false === $fp) {
-            						continue;
-            					}
-            					
-            					$filesToDownload[] = $fp;
-            				}
-            			}
-            			
-            			// create zip file and send as download
-            			$filesToDownload = array_unique($filesToDownload);
-            			{
-            				$zipFile = tempnam($this->getTempDirectory(), 'sg');
-            				
-            				$zip = new ZipArchive();
-            				$zip->open($zipFile, ZipArchive::CREATE);
-            				foreach ($filesToDownload as $f) {
-            					$zip->addFile($f, basename($f));
-            				}
-            				$zip->close();
-            				
-            				header('Content-type: application/zip');
-            				header(sprintf('Content-disposition: attachment; filename="SimpleGallery_%s.zip"',
-            				               date('YmdHis', time())));
-            				readfile($zipFile);
-            				
-            				unlink($zipFile);
-            			}
-            		}
-            		
-            		return true;  // mark as 'handled'
-            	}
-            	break;
+                // download basket
+                if ($this->canDownloadBasket())
+                {
+                    if (isset($_POST['fl'])) {
+                        $filesToDownload = array();
+                        
+                        $fileList = trim($_POST['fl']);
+                        if ('' != $fileList) {
+                            $fileArray = explode("\n", $fileList);
+                            foreach ($fileArray as $f) {
+                                // $f = $this->normalizeFilename($f);
+                                $f = trim($f);
+                                if (empty($f)) {
+                                    continue;
+                                }
+                                
+                                if (!$this->isImageFile($f)) {
+                                    continue;
+                                }
+                                
+                                $fp = realpath($this->getCurrentDirectory() . $f);
+                                if (false === $fp) {
+                                    continue;
+                                }
+                                
+                                $filesToDownload[] = $fp;
+                            }
+                        }
+                        
+                        // create zip file and send as download
+                        $filesToDownload = array_unique($filesToDownload);
+                        {
+                            $zipFile = tempnam($this->getTempDirectory(), 'sg');
+                            
+                            $zip = new ZipArchive();
+                            $zip->open($zipFile, ZipArchive::CREATE);
+                            foreach ($filesToDownload as $f) {
+                                $zip->addFile($f, basename($f));
+                            }
+                            $zip->close();
+                            
+                            header('Content-type: application/zip');
+                            header(sprintf('Content-disposition: attachment; filename="SimpleGallery_%s.zip"',
+                                           date('YmdHis', time())));
+                            readfile($zipFile);
+                            
+                            unlink($zipFile);
+                        }
+                    }
+                    
+                    return true;  // mark as 'handled'
+                }
+                break;
         }
         
         return false;  // NOT handled
@@ -1061,16 +1061,16 @@ class SimpleGallery {
         return false;
     }
     
-	/**
-	 * Checks if a filename is part of the favorite list or not.
-	 * 
-	 * @param string $filename The filename to check.
-	 * 
-	 * @return boolean Is favorite or not.
-	 */
+    /**
+     * Checks if a filename is part of the favorite list or not.
+     * 
+     * @param string $filename The filename to check.
+     * 
+     * @return boolean Is favorite or not.
+     */
     public function isFavorite($filename) {
-    	return false !== array_search(trim($filename),
-    			                      $this->getFavorites());
+        return false !== array_search(trim($filename),
+                                      $this->getFavorites());
     }
     
     /**
@@ -1079,7 +1079,7 @@ class SimpleGallery {
      * @return boolean Session is running or not.
      */
     public function isSessionRunning() {
-    	return $this->_isSessionRunning;
+        return $this->_isSessionRunning;
     }
     
     /**
@@ -1090,13 +1090,13 @@ class SimpleGallery {
      * @return boolean Is set or not.
      */
     public function issetVar($name) {
-    	$name = $this->normalizeVarName($name);
-    	
-    	if ($this->isSessionRunning()) {
-    		return isset($_SESSION[$name]);
-    	}
-    	
-    	return isset($_COOKIE[$name]);
+        $name = $this->normalizeVarName($name);
+        
+        if ($this->isSessionRunning()) {
+            return isset($_SESSION[$name]);
+        }
+        
+        return isset($_COOKIE[$name]);
     }
 
     /**
@@ -1139,9 +1139,9 @@ class SimpleGallery {
      * @return string The normalized value.
      */
     protected function normalizeFilename($file) {
-    	$result = strval($file);
-    	
-    	// path separators
+        $result = strval($file);
+        
+        // path separators
         $result = str_ireplace('/'           , '', $result);
         $result = str_ireplace('\\'          , '', $result);
         $result = str_ireplace(PATH_SEPARATOR, '', $result);
@@ -1150,13 +1150,13 @@ class SimpleGallery {
         $result = str_ireplace("\t", '    ', $result);
         $result = str_ireplace("\r", ''    , $result);
         $result = str_ireplace("\n", ''    , $result);
-    	
-    	$result = trim($result);
-    	if (empty($result)) {
-    		$result = null;
-    	}
-    	
-    	return $file;
+        
+        $result = trim($result);
+        if (empty($result)) {
+            $result = null;
+        }
+        
+        return $file;
     }
     
     /**
@@ -1167,20 +1167,20 @@ class SimpleGallery {
      * @return string The normalized value.
      */
     protected function normalizeVarName($name) {
-    	$result = strval($name);
-    	
-    	$result = str_ireplace("\t", '    ', $result);
-    	$result = str_ireplace("\r", ''    , $result);
-    	$result = str_ireplace("\n", ''    , $result);
-    	$result = str_ireplace(' ', '_'    , $result);
-    	
-    	$result = trim(strtoupper($result));
-    	
-    	if (empty($result)) {
-    		$result = null;
-    	}
-    	 
-    	return $name;
+        $result = strval($name);
+        
+        $result = str_ireplace("\t", '    ', $result);
+        $result = str_ireplace("\r", ''    , $result);
+        $result = str_ireplace("\n", ''    , $result);
+        $result = str_ireplace(' ', '_'    , $result);
+        
+        $result = trim(strtoupper($result));
+        
+        if (empty($result)) {
+            $result = null;
+        }
+         
+        return $name;
     }
     
     /**
@@ -1349,15 +1349,15 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function setVar($name, $value) {
-    	$name = $this->normalizeVarName($name);
-    	
-    	if ($this->isSessionRunning()) {
-    		$_SESSION[$name] = $value;
-    		return isset($_SESSION[$name]);
-    	}
+        $name = $this->normalizeVarName($name);
+        
+        if ($this->isSessionRunning()) {
+            $_SESSION[$name] = $value;
+            return isset($_SESSION[$name]);
+        }
 
-    	$_COOKIE[$name] = $value;
-    	return isset($_COOKIE[$name]);
+        $_COOKIE[$name] = $value;
+        return isset($_COOKIE[$name]);
     }
     
     /**
@@ -1391,10 +1391,10 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function startSession() {
-    	session_name(trim($this->Config->session->name));
-    	$this->_isSessionRunning = session_start();
-    	 
-    	return $this->isSessionRunning();
+        session_name(trim($this->Config->session->name));
+        $this->_isSessionRunning = session_start();
+         
+        return $this->isSessionRunning();
     }
     
     /**
@@ -1405,30 +1405,30 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function toggleFavorite($filename) {
-    	$filename = trim($filename);
-    	if ('' == $filename) {
-    		return false;
-    	}
-    	
-    	$favList = $this->getFavorites();
-    	if (!is_array($favList)) {
-    		return false;
-    	}
-    	
-    	if ($this->isFavorite($filename)) {
-    		// remove
-    		
-    		$i = array_search($filename, $favList);
-    		if (false !== $i) {
-    			unset($favList[$i]);
-    		}
-    	}
-    	else {
-    		// add
-    		$favList[] = $filename;
-    	}
-    	
-    	return $this->updateFavorites($favList);
+        $filename = trim($filename);
+        if ('' == $filename) {
+            return false;
+        }
+        
+        $favList = $this->getFavorites();
+        if (!is_array($favList)) {
+            return false;
+        }
+        
+        if ($this->isFavorite($filename)) {
+            // remove
+            
+            $i = array_search($filename, $favList);
+            if (false !== $i) {
+                unset($favList[$i]);
+            }
+        }
+        else {
+            // add
+            $favList[] = $filename;
+        }
+        
+        return $this->updateFavorites($favList);
     }
     
     /**
@@ -1439,30 +1439,30 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function unsetVar($name) {
-    	$name = $this->normalizeVarName($name);
-    	 
-    	if ($this->isSessionRunning()) {
-    		unset($_SESSION[$name]);
-    		return !isset($_SESSION[$name]);
-    	}
-    	 
-    	unset($_COOKIE[$name]);
-    	return !isset($_COOKIE[$name]);
+        $name = $this->normalizeVarName($name);
+         
+        if ($this->isSessionRunning()) {
+            unset($_SESSION[$name]);
+            return !isset($_SESSION[$name]);
+        }
+         
+        unset($_COOKIE[$name]);
+        return !isset($_COOKIE[$name]);
     }
     
     private function updateFavorites(array $favList) {
-    	if (!$this->canManageFavorites()) {
-    		return false;
-    	}
-    	
-    	// cleanup
-    	$favList = array_unique($favList);
-    	asort($favList);
-    	
-    	$this->setVar($this->Config->vars->favorites,
-    			      base64_encode(implode("\n", $favList)));
-    	
-    	return true;
+        if (!$this->canManageFavorites()) {
+            return false;
+        }
+        
+        // cleanup
+        $favList = array_unique($favList);
+        asort($favList);
+        
+        $this->setVar($this->Config->vars->favorites,
+                      base64_encode(implode("\n", $favList)));
+        
+        return true;
     }
 }
 
@@ -1661,7 +1661,7 @@ if ($executeGallery) {
         }
         
         #sgContent .sgThumbList .sgThumbItems .sgThumbItem .sgThumbBtnArea .btn {
-        	float: none;
+            float: none;
             margin-right: 0.5em;
         }
         
@@ -1796,7 +1796,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
       // elements
       SimpleGallery.elements = {};
       {
-    	  // button for clearing favorites
+          // button for clearing favorites
           Object.defineProperty(SimpleGallery.elements, 'clearFavoritesButton', {
               get: function() {
                   return jQuery('#sgClearFavoritesBtn');
@@ -1885,10 +1885,10 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
       // functions
       SimpleGallery.funcs = {};
       {
-    	  SimpleGallery.funcs.ajax = function(mode, opts) {
+          SimpleGallery.funcs.ajax = function(mode, opts) {
               opts = $.extend({
-				  async: true,
-				  data: {},
+                  async: true,
+                  data: {},
                   type: 'POST',
               }, opts);
 
@@ -1899,7 +1899,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               opts.data.m = $.trim(mode).toLowerCase();
 
               $.ajax({
-            	  async: opts.async ? true : false,
+                  async: opts.async ? true : false,
                   data: opts.data,
                   type: opts.type,
                   url: <?php echo $sg->encodeJs(SG_SELF); ?>,
@@ -1910,44 +1910,44 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                       }
 
                       opts.beforeSend({
-                    	  settings: settings,
-                    	  xhr: jqXHR,
-                	  });
+                          settings: settings,
+                          xhr: jqXHR,
+                      });
                   },
                   
                   complete: function(jqXHR, textStatus) {
-                	  if (!opts.complete) {
+                      if (!opts.complete) {
                           return;
                       }
 
-                	  opts.complete({
-                    	  status: textStatus,
-                    	  xhr: jqXHR,
-                	  });
+                      opts.complete({
+                          status: textStatus,
+                          xhr: jqXHR,
+                      });
                   },
                   
                   error: function(jqXHR, textStatus, errorThrown) {
-                	  if (!opts.error) {
+                      if (!opts.error) {
                           return;
                       }
 
-                	  opts.error({
-                    	  error: errorThrown,
-                    	  status: textStatus,
-                    	  xhr: jqXHR,
-                	  });
+                      opts.error({
+                          error: errorThrown,
+                          status: textStatus,
+                          xhr: jqXHR,
+                      });
                   },
                   
                   success: function(data, textStatus, jqXHR) {
-                	  if (!opts.success) {
+                      if (!opts.success) {
                           return;
                       }
 
-                	  opts.success({
-                		  data: data,
-                    	  status: textStatus,
-                    	  xhr: jqXHR,
-                	  });
+                      opts.success({
+                          data: data,
+                          status: textStatus,
+                          xhr: jqXHR,
+                      });
                   },
               });
           };
@@ -1998,41 +1998,41 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                     '<span class="sgIsFavorite" style="display: none;"></span>' + 
                                     '</a>');
                   {
-                	  // newFavBtn.attr('href', '#' + file.id);
+                      // newFavBtn.attr('href', '#' + file.id);
                       
-                	  var updateFavState = function(isFav) {
-                		  newFavBtn.removeClass('btn-default')
-                		           .removeClass('btn-success');
-                    	  
-                		  newFavBtn.addClass(!isFav ? 'btn-default' : 'btn-success');
-                		  newFavBtn.find('.sgIsFavorite').text(!isFav ? '0' : '1');
+                      var updateFavState = function(isFav) {
+                          newFavBtn.removeClass('btn-default')
+                                   .removeClass('btn-success');
+                          
+                          newFavBtn.addClass(!isFav ? 'btn-default' : 'btn-success');
+                          newFavBtn.find('.sgIsFavorite').text(!isFav ? '0' : '1');
 
-                		  SimpleGallery.funcs.updateFavoriteCount();
-                		  SimpleGallery.funcs.filterThumbs();
+                          SimpleGallery.funcs.updateFavoriteCount();
+                          SimpleGallery.funcs.filterThumbs();
                       };
 
                       updateFavState(file.isFav);
 
                       newFavBtn.click(function() {
-                    	  SimpleGallery.funcs.ajax(4, {
-							  beforeSend: function(ctx) {
-								  newFavBtn.prop('disabled', true);
-							  },
-                        	  
-							  data: {
-								  f: file.name,
-							  },
-                        	  
-                        	  success: function(ctx) {
-                            	  var res = ctx.data;
+                          SimpleGallery.funcs.ajax(4, {
+                              beforeSend: function(ctx) {
+                                  newFavBtn.prop('disabled', true);
+                              },
+                              
+                              data: {
+                                  f: file.name,
+                              },
+                              
+                              success: function(ctx) {
+                                  var res = ctx.data;
 
-                            	  updateFavState(res.data.isFavorite);
-                        	  },
+                                  updateFavState(res.data.isFavorite);
+                              },
 
-                        	  complete: function(ctx) {
-								  newFavBtn.prop('disabled', false);
-							  },
-                    	  });
+                              complete: function(ctx) {
+                                  newFavBtn.prop('disabled', false);
+                              },
+                          });
                       });
                       
                       newFavBtn.appendTo(newBtnArea);
@@ -2046,17 +2046,17 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                        '<span class="sgIsBasket" style="display: none;"></span>' + 
                                        '</a>');
                   {
-                	  // newBasketBtn.attr('href', '#' + file.id);
+                      // newBasketBtn.attr('href', '#' + file.id);
                       
-                	  var updateBasketState = function(isBasket) {
-                		  newBasketBtn.removeClass('btn-default')
-                		              .removeClass('btn-success');
-                    	  
-                		  newBasketBtn.addClass(!isBasket ? 'btn-default' : 'btn-success');
-                		  newBasketBtn.find('.sgIsBasket').text(!isBasket ? '' : file.name);
+                      var updateBasketState = function(isBasket) {
+                          newBasketBtn.removeClass('btn-default')
+                                      .removeClass('btn-success');
+                          
+                          newBasketBtn.addClass(!isBasket ? 'btn-default' : 'btn-success');
+                          newBasketBtn.find('.sgIsBasket').text(!isBasket ? '' : file.name);
 
-                		  SimpleGallery.funcs.updateBasketCount();
-                		  SimpleGallery.funcs.filterThumbs();
+                          SimpleGallery.funcs.updateBasketCount();
+                          SimpleGallery.funcs.filterThumbs();
                       };
 
                       updateBasketState(false);
@@ -2065,10 +2065,10 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                           var btnState = newBasketBtn.find('.sgIsBasket');
                           
                           if ('' != btnState.text()) {
-                        	  updateBasketState(false);
+                              updateBasketState(false);
                           }
                           else {
-                        	  updateBasketState(true);
+                              updateBasketState(true);
                           }
                       });
 
@@ -2098,22 +2098,22 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
           };
 
           SimpleGallery.funcs.clearBasket = function() {
-        	  if (!confirm('Do you really want to clear the current download basket?')) {
+              if (!confirm('Do you really want to clear the current download basket?')) {
                   return;
               }
 
-        	  SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn').each(function() {
-        		  var bb = $(this);
+              SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn').each(function() {
+                  var bb = $(this);
 
-        		  bb.removeClass('btn-default')
-		            .removeClass('btn-success')
-		            .addClass('btn-default');
+                  bb.removeClass('btn-default')
+                    .removeClass('btn-success')
+                    .addClass('btn-default');
 
-        		  bb.find('.sgIsBasket').text('');
+                  bb.find('.sgIsBasket').text('');
 
-	              SimpleGallery.funcs.updateBasketCount();
-   		          SimpleGallery.funcs.filterThumbs();
-        	  });
+                  SimpleGallery.funcs.updateBasketCount();
+                     SimpleGallery.funcs.filterThumbs();
+              });
           };
 
           SimpleGallery.funcs.clearFavorites = function() {
@@ -2122,15 +2122,15 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               }
 
               this.ajax(5, {
-				  beforeSend: function(ctx) {
-					  SimpleGallery.elements
-					               .clearFavoritesButton.prop('disabled', true);
-				  },
+                  beforeSend: function(ctx) {
+                      SimpleGallery.elements
+                                   .clearFavoritesButton.prop('disabled', true);
+                  },
 
-				  complete: function(ctx) {
-					  SimpleGallery.elements
-		                           .clearFavoritesButton.prop('disabled', false);
-				  },
+                  complete: function(ctx) {
+                      SimpleGallery.elements
+                                   .clearFavoritesButton.prop('disabled', false);
+                  },
                   
                   success: function(ctx) {
                       switch (ctx.data.code) {
@@ -2140,13 +2140,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                   var fb = t.find('.sgThumbBtnArea .sgFavBtn');
 
                                   fb.removeClass('btn-default')
-               		                .removeClass('btn-success')
-               		                .addClass('btn-default');
+                                       .removeClass('btn-success')
+                                       .addClass('btn-default');
 
-           		                  fb.find('.sgIsFavorite').text('0');
+                                     fb.find('.sgIsFavorite').text('0');
 
-           		                  SimpleGallery.funcs.updateFavoriteCount();
-                     		      SimpleGallery.funcs.filterThumbs();
+                                     SimpleGallery.funcs.updateFavoriteCount();
+                                   SimpleGallery.funcs.filterThumbs();
                               });
                               break;
                       }
@@ -2156,16 +2156,16 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
           SimpleGallery.funcs.downloadBasket = function() {
               var fileList = '';
-        	  SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn .sgIsBasket').each(function() {
+              SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn .sgIsBasket').each(function() {
                   var bb = $(this);
 
                   var fn = $.trim(bb.text());
                   if ('' != fn) {
-					  if ('' != fileList) {
-						  fileList += "\n";
-					  }
+                      if ('' != fileList) {
+                          fileList += "\n";
+                      }
                       
-                	  fileList += fn;
+                      fileList += fn;
                   }
               });
 
@@ -2249,13 +2249,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                               array($sg, 'sortStringsCaseInsensitiveDesc'));
                         
                         for ($i = 0; $i < count($allFiles); $i++) {
-                        	$file = $allFiles[$i];
+                            $file = $allFiles[$i];
                             if (!$sg->isImageFile($file)) {
                                 continue;
                             }
                             
                             $fileId = sprintf('%s-%s', $file
-                            		                 , $i);
+                                                     , $i);
                             
                             $searchExpr = array(trim(strtolower($file)));
                             
@@ -2391,9 +2391,9 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
           };
           
           SimpleGallery.funcs.updateBasketCount = function() {
-        	  var numberOfBasketItems = 0;
+              var numberOfBasketItems = 0;
               SimpleGallery.elements.thumbItems.find('.sgIsBasket').each(function() {
-            	  numberOfBasketItems += '' != $(this).text() ? 1 : 0;
+                  numberOfBasketItems += '' != $(this).text() ? 1 : 0;
               });
 
               var basketCountArea = SimpleGallery.elements.infoTable.find('.sgBasketCount');
@@ -2402,7 +2402,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               var newLink = $('<a href="#"></a>');
               newLink.text(numberOfBasketItems);
               newLink.click(function() {
-            	  SimpleGallery.funcs.setBasketFilter();
+                  SimpleGallery.funcs.setBasketFilter();
               });
               newLink.appendTo(basketCountArea);
           };
@@ -2410,16 +2410,16 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
           SimpleGallery.funcs.updateFavoriteCount = function() {
               var numberOfFavs = 0;
               SimpleGallery.elements.thumbItems.find('.sgIsFavorite').each(function() {
-            	  numberOfFavs += '1' == $(this).text() ? 1 : 0;
+                  numberOfFavs += '1' == $(this).text() ? 1 : 0;
               });
 
-			  var favCountArea = SimpleGallery.elements.infoTable.find('.sgFavCount');
-			  favCountArea.html('');
+              var favCountArea = SimpleGallery.elements.infoTable.find('.sgFavCount');
+              favCountArea.html('');
               
               var newLink = $('<a href="#"></a>');
               newLink.text(numberOfFavs);
               newLink.click(function() {
-            	  SimpleGallery.funcs.setFavoriteFilter();
+                  SimpleGallery.funcs.setFavoriteFilter();
               });
               newLink.appendTo(favCountArea);
           };
@@ -2460,13 +2460,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                       case ':nofav':
                           // favorite?
                           {
-                    	      var isFavTag = thumb.find('.sgIsFavorite');
+                              var isFavTag = thumb.find('.sgIsFavorite');
                           
-                    	      checkForHidePredicate = w.startsWith(':no') ? function() {
-                        	                                                    return '1' == isFavTag.text();
+                              checkForHidePredicate = w.startsWith(':no') ? function() {
+                                                                                return '1' == isFavTag.text();
                                                                             }
                                                                           : function() {
-                                                                        	    return '1' != isFavTag.text();
+                                                                                return '1' != isFavTag.text();
                                                                             };
                           }
                           break; 
@@ -2481,7 +2481,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                                                                 return geoBtn.length > 0;
                                                                             }
                                                                           : function() {
-                           	                                                    return geoBtn.length < 1;
+                                                                                   return geoBtn.length < 1;
                                                                             };
                           }
                           break;
@@ -2496,7 +2496,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                                                                                 return '' != isBasketTag.text();
                                                                             }
                                                                           : function() {
-                           	                                                    return '' == isBasketTag.text();
+                                                                                   return '' == isBasketTag.text();
                                                                             };
                           }
                           break;
@@ -2504,7 +2504,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
                   if (null != checkForHidePredicate) {
                       if (checkForHidePredicate()) {
-                    	  showThumb = false;
+                          showThumb = false;
                           break;
                       }
 
