@@ -43,6 +43,10 @@ $GLOBALS['conf']['custom']['include'] = './sgInclude.php';
 $GLOBALS['conf']['custom']['script']  = './sgScript.js';
 $GLOBALS['conf']['custom']['style']   = './sgStyle.css';
 
+// features
+$GLOBALS['conf']['features']             = array();
+$GLOBALS['conf']['features']['download'] = false;    // download basket
+
 // media
 $GLOBALS['conf']['media']              = array();
 $GLOBALS['conf']['media']['supported'] = array(
@@ -163,12 +167,34 @@ class SimpleGallery {
     }
     
     /**
+     * Gets if the "download basket" feature is enabled or not.
+     *
+     * @return boolean Feature is enabled or not.
+     */
+    public function canDownloadBasket() {
+    	return $this->Config->features->download;
+    }
+    
+    /**
      * Checks if the system can handle favorites or not.
      * 
      * @return boolean Can handle favorites or not.
      */
     public function canManageFavorites() {
     	return true;
+    }
+    
+    /**
+     * Clears the list of favorites.
+     * 
+     * @return boolean Operation was successful or not.
+     */
+    public function clearFavorites() {
+    	if (!$this->canManageFavorites()) {
+    		return false;
+    	}
+    	
+    	return $this->unsetVar($this->Config->vars->favorites);
     }
     
     /**
@@ -574,9 +600,20 @@ class SimpleGallery {
     
     /**
      * Returns the list of supported MIME types and file extensions.
+     * 
+     * @return array The list of supported MIME types.
      */
     public function getSupportedFiles() {
         return $this->Config->media->supported;
+    }
+    
+    /**
+     * Gets the full path of the temporary directory.
+     * 
+     * @return string The full path of the temp directory.
+     */
+    public function getTempDirectory() {
+    	return sys_get_temp_dir();
     }
     
     /**
@@ -880,8 +917,8 @@ class SimpleGallery {
             		if ($this->canManageFavorites()) {
             			$jsonResult->data = new stdClass();
             			
-	            		if (isset($_REQUEST['f'])) {
-	            			$filename = trim($_REQUEST['f']);
+	            		if (isset($_POST['f'])) {
+	            			$filename = trim($_POST['f']);
 	            			if ('' != $filename) {
 		            			if ($this->toggleFavorite($filename)) {
 		            				$jsonResult->code = 0;
@@ -908,6 +945,84 @@ class SimpleGallery {
             		echo json_encode($jsonResult);
             	}
             	return true;  // mark as 'handled'
+            	
+            case '5':
+            	// clear favorites
+            	{
+            		$jsonResult       = new stdClass();
+            		$jsonResult->code = null;
+            		
+            		if ($this->canManageFavorites()) {
+            			if ($this->clearFavorites()) {
+            				$jsonResult->code = 0;
+            			}
+            			else {
+            				$jsonResult->code = 1;
+            			}
+            		}
+            		else {
+            			$jsonResult->code = 2;
+            		}
+            		
+            		header('Content-type: application/json; charset=utf-8');
+            		echo json_encode($jsonResult);
+            	}
+            	return true;  // mark as 'handled'
+            	
+            case '6':
+            	// download basket
+            	if ($this->canDownloadBasket())
+            	{
+            		if (isset($_POST['fl'])) {
+            			$filesToDownload = array();
+            			
+            			$fileList = trim($_POST['fl']);
+            			if ('' != $fileList) {
+            				$fileArray = explode("\n", $fileList);
+            				foreach ($fileArray as $f) {
+            					// $f = $this->normalizeFilename($f);
+            					$f = trim($f);
+            					if (empty($f)) {
+            						continue;
+            					}
+            					
+            					if (!$this->isImageFile($f)) {
+            						continue;
+            					}
+            					
+            					$fp = realpath($this->getCurrentDirectory() . $f);
+            					if (false === $fp) {
+            						continue;
+            					}
+            					
+            					$filesToDownload[] = $fp;
+            				}
+            			}
+            			
+            			// create zip file and send as download
+            			$filesToDownload = array_unique($filesToDownload);
+            			{
+            				$zipFile = tempnam($this->getTempDirectory(), 'sg');
+            				
+            				$zip = new ZipArchive();
+            				$zip->open($zipFile, ZipArchive::CREATE);
+            				foreach ($filesToDownload as $f) {
+            					$zip->addFile($f, basename($f));
+            				}
+            				$zip->close();
+            				
+            				header('Content-type: application/zip');
+            				header(sprintf('Content-disposition: attachment; filename="SimpleGallery_%s.zip"',
+            				               date('YmdHis', time())));
+            				readfile($zipFile);
+            				
+            				unlink($zipFile);
+            			}
+            		}
+            		
+            		return true;  // mark as 'handled'
+            	}
+            	break;
         }
         
         return false;  // NOT handled
@@ -1014,6 +1129,34 @@ class SimpleGallery {
      */
     protected function loadConfig() {
         $this->_config = $this->arrayToObject($GLOBALS['conf']);
+    }
+    
+    /**
+     * Normalizes a filename.
+     * 
+     * @param string $file The input value.
+     * 
+     * @return string The normalized value.
+     */
+    protected function normalizeFilename($file) {
+    	$result = strval($file);
+    	
+    	// path separators
+        $result = str_ireplace('/'           , '', $result);
+        $result = str_ireplace('\\'          , '', $result);
+        $result = str_ireplace(PATH_SEPARATOR, '', $result);
+        
+        // white spaces
+        $result = str_ireplace("\t", '    ', $result);
+        $result = str_ireplace("\r", ''    , $result);
+        $result = str_ireplace("\n", ''    , $result);
+    	
+    	$result = trim($result);
+    	if (empty($result)) {
+    		$result = null;
+    	}
+    	
+    	return $file;
     }
     
     /**
@@ -1288,6 +1431,25 @@ class SimpleGallery {
     	return $this->updateFavorites($favList);
     }
     
+    /**
+     * Unsets a variable.
+     * 
+     * @param string $name The name of the variable to unset.
+     * 
+     * @return boolean Operation was successful or not.
+     */
+    public function unsetVar($name) {
+    	$name = $this->normalizeVarName($name);
+    	 
+    	if ($this->isSessionRunning()) {
+    		unset($_SESSION[$name]);
+    		return !isset($_SESSION[$name]);
+    	}
+    	 
+    	unset($_COOKIE[$name]);
+    	return !isset($_COOKIE[$name]);
+    }
+    
     private function updateFavorites(array $favList) {
     	if (!$this->canManageFavorites()) {
     		return false;
@@ -1418,6 +1580,19 @@ if ($executeGallery) {
             });
         };
 
+        /**
+         * Checks if that string starts with a specific expression.
+         *
+         * @method startsWith
+         *
+         * @param {String} str The expression to check.
+         *
+         * @return {Boolean} Starts with expression or not.
+         */
+        String.prototype.startsWith = function(str) {
+            return 0 == this.indexOf(str);
+        };
+
     </script>
     
     <!-- Bootstrap -->
@@ -1460,6 +1635,14 @@ if ($executeGallery) {
         
         #sgContent .sgThumbList .sgThumbItems img {
             height: 10em;
+        }
+        
+        #sgContent .sgGalleryInfo .sgInfoTable td {
+            vertical-align: top;
+        }
+        
+        #sgContent .sgGalleryInfo .sgInfoTable td button {
+            margin-right: 0.5em;
         }
         
         #sgContent .sgGalleryInfo .sgInfoTable td.sgColLeft {
@@ -1532,18 +1715,41 @@ if ($executeGallery) {
           <table class="table table-hover table-striped sgInfoTable">
             <tr>
               <td class="sgColLeft">Path:</td>
-              <td><?php echo htmlentities(SG_SCRIPT_PATH); ?></td>
+              <td class="sgColRight"><?php echo htmlentities(SG_SCRIPT_PATH); ?></td>
             </tr>
             
             <tr>
               <td class="sgColLeft"># of pictures:</td>
-              <td class="sgTotalPicCount">---</td>
+              <td class="sgColRight sgTotalPicCount">---</td>
             </tr>
             
             <tr>
               <td class="sgColLeft">Favorites:</td>
-              <td class="sgFavCount">---</td>
+              <td class="sgColRight sgFavorites">
+                  <div class="sgFavCount">---</div>
+                  
+                  <div>
+                    <button id="sgClearFavoritesBtn" type="button" role="button" class="btn btn-warning btn-xs glyphicon glyphicon-trash" onclick="SimpleGallery.funcs.clearFavorites()"></button>
+                  </div>
+              </td>
             </tr>
+
+<?php if ($sg->canDownloadBasket()): ?>
+
+            <tr>
+              <td class="sgColLeft">Basket:</td>
+              <td class="sgColRight sgBasket">
+                  <div class="sgBasketCount">---</div>
+                  
+                  <div>
+                    <button id="sgDownloadBasketBtn" type="button" role="button" class="btn btn-primary btn-xs glyphicon glyphicon-download" onclick="SimpleGallery.funcs.downloadBasket()"></button>
+                    <button id="sgClearBasketBtn" type="button" role="button" class="btn btn-warning btn-xs glyphicon glyphicon-trash" onclick="SimpleGallery.funcs.clearBasket()"></button>
+                  </div>
+              </td>
+            </tr>
+            
+<?php endif; ?>
+
           </table>
         </div>
       </div>
@@ -1590,6 +1796,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
       // elements
       SimpleGallery.elements = {};
       {
+    	  // button for clearing favorites
+          Object.defineProperty(SimpleGallery.elements, 'clearFavoritesButton', {
+              get: function() {
+                  return jQuery('#sgClearFavoritesBtn');
+              },
+          });
+          
           // content
           Object.defineProperty(SimpleGallery.elements, 'content', {
               get: function() {
@@ -1597,6 +1810,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               },
           });
 
+          // download basket button
+          Object.defineProperty(SimpleGallery.elements, 'downloadBasketButton', {
+              get: function() {
+                  return jQuery('#sgDownloadBasketBtn');
+              },
+          });
+          
           // filter textbox
           Object.defineProperty(SimpleGallery.elements, 'filterTextbox', {
               get: function() {
@@ -1772,14 +1992,14 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
               var newBtnArea = $('<p class="sgThumbBtnArea"></p>');
               {
-                  
-                  
                   // favorite button
-                  var newFavBtn = $('<a href="#" class="btn" role="button">' + 
+                  var newFavBtn = $('<a class="btn sgFavBtn" role="button">' + 
                                     '<span class="glyphicon glyphicon-heart" aria-hidden="true"></span>' + 
                                     '<span class="sgIsFavorite" style="display: none;"></span>' + 
                                     '</a>');
                   {
+                	  // newFavBtn.attr('href', '#' + file.id);
+                      
                 	  var updateFavState = function(isFav) {
                 		  newFavBtn.removeClass('btn-default')
                 		           .removeClass('btn-success');
@@ -1818,11 +2038,53 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                       newFavBtn.appendTo(newBtnArea);
                   }
 
+<?php if ($sg->canDownloadBasket()): ?>
+
+                  // download basket
+                  var newBasketBtn = $('<a class="btn sgBasketBtn" role="button">' + 
+                                       '<span class="glyphicon glyphicon-gift" aria-hidden="true"></span>' + 
+                                       '<span class="sgIsBasket" style="display: none;"></span>' + 
+                                       '</a>');
+                  {
+                	  // newBasketBtn.attr('href', '#' + file.id);
+                      
+                	  var updateBasketState = function(isBasket) {
+                		  newBasketBtn.removeClass('btn-default')
+                		              .removeClass('btn-success');
+                    	  
+                		  newBasketBtn.addClass(!isBasket ? 'btn-default' : 'btn-success');
+                		  newBasketBtn.find('.sgIsBasket').text(!isBasket ? '' : file.name);
+
+                		  SimpleGallery.funcs.updateBasketCount();
+                		  SimpleGallery.funcs.filterThumbs();
+                      };
+
+                      updateBasketState(false);
+
+                      newBasketBtn.click(function() {
+                          var btnState = newBasketBtn.find('.sgIsBasket');
+                          
+                          if ('' != btnState.text()) {
+                        	  updateBasketState(false);
+                          }
+                          else {
+                        	  updateBasketState(true);
+                          }
+                      });
+
+                      newBasketBtn.appendTo(newBtnArea);
+                  }
+                  
+<?php endif; ?>
+
                   // add GEO button?
                   if (file.geo) {
-                      var newGeoBtn = $('<a href="#" class="btn btn-primary sgGeoBtn" role="button">' + 
+                      var newGeoBtn = $('<a class="btn btn-primary sgGeoBtn" role="button">' + 
                                         '<span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>' +  
                                         '</a>');
+
+                      // newGeoBtn.attr('href', '#' + file.id);
+                      
                       newGeoBtn.click(function() {
                           SimpleGallery.funcs.openMapWebsite(file.geo.lat,
                                                              file.geo.long);
@@ -1833,6 +2095,102 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               newBtnArea.appendTo(newCaption);
 
               return newItem;
+          };
+
+          SimpleGallery.funcs.clearBasket = function() {
+        	  if (!confirm('Do you really want to clear the current download basket?')) {
+                  return;
+              }
+
+        	  SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn').each(function() {
+        		  var bb = $(this);
+
+        		  bb.removeClass('btn-default')
+		            .removeClass('btn-success')
+		            .addClass('btn-default');
+
+        		  bb.find('.sgIsBasket').text('');
+
+	              SimpleGallery.funcs.updateBasketCount();
+   		          SimpleGallery.funcs.filterThumbs();
+        	  });
+          };
+
+          SimpleGallery.funcs.clearFavorites = function() {
+              if (!confirm('Do you really want to clear the current list of favorites?')) {
+                  return;
+              }
+
+              this.ajax(5, {
+				  beforeSend: function(ctx) {
+					  SimpleGallery.elements
+					               .clearFavoritesButton.prop('disabled', true);
+				  },
+
+				  complete: function(ctx) {
+					  SimpleGallery.elements
+		                           .clearFavoritesButton.prop('disabled', false);
+				  },
+                  
+                  success: function(ctx) {
+                      switch (ctx.data.code) {
+                          case 0:
+                              SimpleGallery.elements.thumbItems.find('.sgThumbItem').each(function() {
+                                  var t = $(this);
+                                  var fb = t.find('.sgThumbBtnArea .sgFavBtn');
+
+                                  fb.removeClass('btn-default')
+               		                .removeClass('btn-success')
+               		                .addClass('btn-default');
+
+           		                  fb.find('.sgIsFavorite').text('0');
+
+           		                  SimpleGallery.funcs.updateFavoriteCount();
+                     		      SimpleGallery.funcs.filterThumbs();
+                              });
+                              break;
+                      }
+                  },
+              });
+          };
+
+          SimpleGallery.funcs.downloadBasket = function() {
+              var fileList = '';
+        	  SimpleGallery.elements.thumbItems.find('.sgThumbItem .sgThumbBtnArea .sgBasketBtn .sgIsBasket').each(function() {
+                  var bb = $(this);
+
+                  var fn = $.trim(bb.text());
+                  if ('' != fn) {
+					  if ('' != fileList) {
+						  fileList += "\n";
+					  }
+                      
+                	  fileList += fn;
+                  }
+              });
+
+              if ('' == fileList) {
+                  return;
+              }
+
+              var form = $('<form></form>');
+              form.attr('action', <?php echo $sg->encodeJs(SG_SELF); ?>);
+              form.attr('method', 'POST');
+              form.attr('target', '_blank');
+              form.hide();
+
+              var modeVal = $('<input type="hidden" name="m"></input>');
+              modeVal.attr('value', 6);
+              modeVal.appendTo(form);
+
+              var fileListVal = $('<input type="hidden" name="fl"></input>');
+              fileListVal.attr('value', fileList);
+              fileListVal.appendTo(form);
+
+              $('body').append(form);
+              
+              form.submit();
+              form.remove();
           };
 
           SimpleGallery.funcs.filterThumbs = function(expr) {
@@ -1851,7 +2209,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
           SimpleGallery.funcs.getFilterWordList = function(expr) {
               if (typeof expr == 'undefined') {
-                  expr = $('#sgFilterTextbox').val();
+                  expr = SimpleGallery.elements.filterTextbox.val();
               }
 
               expr = $.trim(expr);
@@ -1890,11 +2248,14 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                         usort($allFiles,
                               array($sg, 'sortStringsCaseInsensitiveDesc'));
                         
-                        $testIPTC = 0;
-                        foreach ($allFiles as $file) {
+                        for ($i = 0; $i < count($allFiles); $i++) {
+                        	$file = $allFiles[$i];
                             if (!$sg->isImageFile($file)) {
                                 continue;
                             }
+                            
+                            $fileId = sprintf('%s-%s', $file
+                            		                 , $i);
                             
                             $searchExpr = array(trim(strtolower($file)));
                             
@@ -1937,9 +2298,10 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
 ?>
               SimpleGallery.vars.imagesToLoad.push({
-                  name: <?php echo $sg->encodeJs(trim($file)); ?>,
                   geo: <?php echo !is_array($gps) ? 'null' : sprintf('{ lat: %s, long: %s }', $gps['lat'], $gps['long']); ?>,
+                  id: <?php echo $sg->encodeJs(trim($fileId)); ?>,
                   isFav: <?php echo $sg->isFavorite($file) ? 'true' : 'false'; ?>,
+                  name: <?php echo $sg->encodeJs(trim($file)); ?>,
                   searchExpr: <?php echo $sg->encodeJs(implode(' ', $searchExpr)); ?>,
               });
 <?php
@@ -1968,7 +2330,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               if (!file) {
                   return;
               }
-          
+
               var newItem = this.buildThumbItem(file);
               this.updateThumbVisibility(newItem,
                                          SimpleGallery.funcs.getFilterWordList());
@@ -2014,10 +2376,35 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                   }, 1000);     
               }        
           };
-
+          
+          SimpleGallery.funcs.setBasketFilter = function() {
+              this.setFilter(':basket');
+          };
+          
           SimpleGallery.funcs.setFavoriteFilter = function() {
-              SimpleGallery.elements.filterTextbox.val(':fav');
-              SimpleGallery.elements.filterTextbox.trigger('keyup');
+              this.setFilter(':fav');
+          };
+
+          SimpleGallery.funcs.setFilter = function(val) {
+              SimpleGallery.elements.filterTextbox.val(val)
+                                                  .trigger('keyup');
+          };
+          
+          SimpleGallery.funcs.updateBasketCount = function() {
+        	  var numberOfBasketItems = 0;
+              SimpleGallery.elements.thumbItems.find('.sgIsBasket').each(function() {
+            	  numberOfBasketItems += '' != $(this).text() ? 1 : 0;
+              });
+
+              var basketCountArea = SimpleGallery.elements.infoTable.find('.sgBasketCount');
+              basketCountArea.html('');
+
+              var newLink = $('<a href="#"></a>');
+              newLink.text(numberOfBasketItems);
+              newLink.click(function() {
+            	  SimpleGallery.funcs.setBasketFilter();
+              });
+              newLink.appendTo(basketCountArea);
           };
 
           SimpleGallery.funcs.updateFavoriteCount = function() {
@@ -2026,14 +2413,15 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
             	  numberOfFavs += '1' == $(this).text() ? 1 : 0;
               });
 
+			  var favCountArea = SimpleGallery.elements.infoTable.find('.sgFavCount');
+			  favCountArea.html('');
+              
               var newLink = $('<a href="#"></a>');
               newLink.text(numberOfFavs);
               newLink.click(function() {
             	  SimpleGallery.funcs.setFavoriteFilter();
               });
-
-              SimpleGallery.elements.infoTable.find('.sgFavCount').html('')
-                                                                  .append(newLink);
+              newLink.appendTo(favCountArea);
           };
 
           SimpleGallery.funcs.updateProgess = function(progress) {
@@ -2063,26 +2451,66 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
               var showThumb = true;
               for (var i = 0; i < words.length; i++) {
+                  var checkForHidePredicate = null;
+                  var continueIfCheckForHidePredicateDoNotMatch = true;
+                  
                   var w = words[i];
                   switch (w) {
                       case ':fav':
+                      case ':nofav':
                           // favorite?
                           {
-                              var isFavTag = thumb.find('.sgIsFavorite');
-                              if ('1' != isFavTag.text()) {
-                            	  showThumb = false;
-                                  break;
-                              }
+                    	      var isFavTag = thumb.find('.sgIsFavorite');
+                          
+                    	      checkForHidePredicate = w.startsWith(':no') ? function() {
+                        	                                                    return '1' == isFavTag.text();
+                                                                            }
+                                                                          : function() {
+                                                                        	    return '1' != isFavTag.text();
+                                                                            };
                           }
-                          continue; 
+                          break; 
 
                       case ':geo':
+                      case ':nogeo':
                           // picture with geo location?
-                          if (thumb.find('.sgThumbBtnArea .sgGeoBtn').length < 1) {
-                        	  showThumb = false;
-                              break;
+                          {
+                              var geoBtn = thumb.find('.sgThumbBtnArea .sgGeoBtn');
+                          
+                              checkForHidePredicate = w.startsWith(':no') ? function() {
+                                                                                return geoBtn.length > 0;
+                                                                            }
+                                                                          : function() {
+                           	                                                    return geoBtn.length < 1;
+                                                                            };
                           }
+                          break;
+
+                      case ':basket':
+                      case ':nobasket':
+                          // marked as download basket item?
+                          {
+                              var isBasketTag = thumb.find('.sgIsBasket');
+                              
+                              checkForHidePredicate = w.startsWith(':no') ? function() {
+                                                                                return '' != isBasketTag.text();
+                                                                            }
+                                                                          : function() {
+                           	                                                    return '' == isBasketTag.text();
+                                                                            };
+                          }
+                          break;
+                  }
+
+                  if (null != checkForHidePredicate) {
+                      if (checkForHidePredicate()) {
+                    	  showThumb = false;
+                          break;
+                      }
+
+                      if (continueIfCheckForHidePredicateDoNotMatch) {
                           continue;
+                      }
                   }
                   
                   if (searchExpr.indexOf(w) < 0) {

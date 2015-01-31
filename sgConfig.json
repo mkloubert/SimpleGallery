@@ -1,4 +1,8 @@
 {
+    "features": {
+        "download": true
+    },
+    
     "thumbs": {
         "cache": "./.sgCache",
         "max_height": 150,
