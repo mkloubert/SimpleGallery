@@ -2,12 +2,21 @@
 
 An image gallery script in one single [PHP](https://en.wikipedia.org/wiki/PHP) file.
 
+![Screenshot](https://raw.githubusercontent.com/mkloubert/SimpleGallery/master/readme/screenshot.png)
+
 It makes use of
 
 * [Bootstrap](http://getbootstrap.com/) with [Darkly](http://bootswatch.com/) theme
 * [jQuery](http://jquery.com/)
 
 Have a look at the [wiki](https://github.com/mkloubert/SimpleGallery/wiki) if you need more detailed documentation.
+
+## Features
+
+* [EXIF](https://en.wikipedia.org/wiki/Exchangeable_image_file_format) and [IPTC](https://en.wikipedia.org/wiki/IPTC_Information_Interchange_Model)
+* Filter
+* Managing own favorites
+* ZIP download of many files
 
 ## Requirements
 
