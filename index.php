@@ -30,18 +30,28 @@ define('SG_INDEX', 'index', false);
 
 $GLOBALS['sg'] = null;
 
-$GLOBALS['conf']          = array();
-$GLOBALS['conf']['class'] = 'SimpleGallery';
-$GLOBALS['conf']['files'] = array('./sgConfig.json',
-                                  './sgUsers.json',
-                                  './sgCustom.json');
+$GLOBALS['conf'] = array();
+
+// app
+$GLOBALS['conf']['app']          = array();
+$GLOBALS['conf']['app']['class'] = 'SimpleGallery';
+$GLOBALS['conf']['app']['dir']   = './';
 
 // custom data
-$GLOBALS['conf']['custom']            = array();
-$GLOBALS['conf']['custom']['dir']     = './';
-$GLOBALS['conf']['custom']['include'] = './sgInclude.php';
-$GLOBALS['conf']['custom']['script']  = './sgScript.js';
-$GLOBALS['conf']['custom']['style']   = './sgStyle.css';
+$GLOBALS['conf']['custom']['config']   = array(
+    './sgConfig.json',
+    './sgUsers.json',
+    './sgCustom.json',
+);
+$GLOBALS['conf']['custom']['includes'] = array(
+    './sgInclude.php',
+);
+$GLOBALS['conf']['custom']['scripts']  = array(
+    './sgScript.js',
+);
+$GLOBALS['conf']['custom']['styles']   = array(
+    './sgStyle.css',
+);
 
 // features
 $GLOBALS['conf']['features']             = array();
@@ -112,14 +122,6 @@ class SimpleGallery {
      * @var boolean
      */
     private $_isSessionRunning;
-    
-    
-    /**
-     * Initializes a new instance of that class.
-     */
-    public function __construct() {
-        $this->loadConfig();
-    }
     
     
     /**
@@ -235,7 +237,7 @@ class SimpleGallery {
      * @return string The current directory.
      */
     public function getCurrentDirectory() {
-        return realpath($this->Config->custom->dir) .
+        return realpath($this->Config->app->dir) .
                DIRECTORY_SEPARATOR;
     }
     
@@ -832,21 +834,23 @@ class SimpleGallery {
                                             break;
                                         }
                                     }
-                                }    
-                              
+                                }
+                                
                                 $this->saveThumbToCache($img, $imgFile);
                             }
                             
                             // output and free resources
-                            if ($isCached) {
-                                $this->sendThumbHeaders('image/png');
-                                imagepng($img);
+                            if (is_resource($img)) {
+                            	if ($isCached) {
+                            		$this->sendThumbHeaders('image/png');
+                            		imagepng($img);
+                            	}
+                            	else {
+                            		$this->outputThumb($img);
+                            	}
+                            	
+                            	imagedestroy($img);
                             }
-                            else {
-                                $this->outputThumb($img);
-                            }
-                            
-                            imagedestroy($img);
                         }
                     }
                 }
@@ -971,8 +975,7 @@ class SimpleGallery {
                 
             case '6':
                 // download basket
-                if ($this->canDownloadBasket())
-                {
+                if ($this->canDownloadBasket()) {
                     if (isset($_POST['fl'])) {
                         $filesToDownload = array();
                         
@@ -1026,6 +1029,17 @@ class SimpleGallery {
         }
         
         return false;  // NOT handled
+    }
+    
+    /**
+     * Initializes that class.
+     * 
+     * @return boolean Operation was successful or not.
+     */
+    public function init() {
+    	$this->loadConfig();
+    	
+    	return true;
     }
     
     /**
@@ -1202,12 +1216,12 @@ class SimpleGallery {
             $this->sendThumbHeaders();
         }
         else {
-            $file = realpath($file);
-            if (false !== $file) {
-                unlink($file);
+            $existingFile = realpath($file);
+            if (false !== $existingFile) {
+                unlink($existingFile);
             }
         }
-
+        
         return imagejpeg($img,
                          $file,
                          $this->Config->thumbs->quality);
@@ -1325,9 +1339,8 @@ class SimpleGallery {
             return false;
         }
     
-        $filename = $dir . $this->getThumbFilename($filename);
-    
-        return $this->outputThumb($img, $filename);
+        return $this->outputThumb($img,
+        		                  $dir . $this->getThumbFilename($filename));
     }
     
     /**
@@ -1469,14 +1482,8 @@ class SimpleGallery {
 /********** CLASS: SimpleGallery **********/
 
 
-// create instance of application class
-// that should be an instance of 'SimpleGallery'
-// or of a subclass of it
-$GLOBALS['sg'] = $sg = new $GLOBALS['conf']['class']();
-
-
 // load custom config (if available)
-foreach ($GLOBALS['conf']['files'] as $confFile) {
+foreach ($GLOBALS['conf']['custom']['config'] as $confFile) {
     $customConfigFile = realpath($confFile);
     if (false === $customConfigFile) {
         continue;
@@ -1496,10 +1503,26 @@ foreach ($GLOBALS['conf']['files'] as $confFile) {
 
     $GLOBALS['conf'] = array_replace_recursive($GLOBALS['conf'],
                                                $customConf);
-    
-    $sg->reloadConfig();
 }
 
+// custom include files
+foreach ($GLOBALS['conf']['custom']['includes'] as $incFile) {
+	$customIncFile = realpath($incFile);
+	if (false === $customIncFile) {
+		continue;
+	}
+	
+	require $customIncFile;
+}
+
+
+// create instance of application class
+// that should be an instance of 'SimpleGallery'
+// or of a subclass of it
+$GLOBALS['sg'] = $sg = new $GLOBALS['conf']['app']['class']();
+if (!$sg->init()) {
+	throw new Exception('APP INITIALIZATION FAILED!');
+}
 
 // start session
 $sg->startSession();
@@ -2545,8 +2568,12 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 <?php
 
         // additional / custom styles
-        $customCssFile = realpath($sg->Config->custom->style);
-        if (false !== $customCssFile) {
+        foreach ($GLOBALS['conf']['custom']['styles'] as $cf) {
+            $customCssFile = realpath($cf);
+            if (false === $customCssFile) {
+            	continue;
+            }
+            
 ?>
 
     <style type="text/css">
@@ -2558,10 +2585,13 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 <?php
         }
 
-
         // additional / custom scripts
-        $customScriptFile = realpath($sg->Config->custom->script);
-        if (false !== $customScriptFile) {
+        foreach ($GLOBALS['conf']['custom']['scripts'] as $sf) {
+            $customScriptFile = realpath($sf);
+            if (false === $customScriptFile) {
+            	continue;
+            }
+            
 ?>
 
     <script type="text/javascript">
