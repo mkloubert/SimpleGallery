@@ -45,10 +45,14 @@ If the file was not found, it is ignored.
 
 By default you can copy or link a file called `sgScript.js` to the directory where the gallery script is stored / linked.
 
+The content of the file is included at the end of the output document AFTER custom style sheet was included.
+
 If the file was not found, it is ignored.
 
 ### Styles
 
 By default you can copy or link a file called `sgStyle.css` to the directory where the gallery script is stored / linked.
+
+The content of the file is included at the end of the output document BEFORE custom script was included.
 
 If the file was not found, it is ignored.
