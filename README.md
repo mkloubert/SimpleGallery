@@ -13,7 +13,8 @@ Have a look at the [wiki](https://github.com/mkloubert/SimpleGallery/wiki) if yo
 
 ## Features
 
-* [EXIF](https://en.wikipedia.org/wiki/Exchangeable_image_file_format) and [IPTC](https://en.wikipedia.org/wiki/IPTC_Information_Interchange_Model)
+* Caching
+* [EXIF](https://en.wikipedia.org/wiki/Exchangeable_image_file_format) and [IPTC](https://en.wikipedia.org/wiki/IPTC_Information_Interchange_Model) (geo tags, keywords, etc.)
 * Filter
 * Managing own favorites
 * ZIP download of many files
