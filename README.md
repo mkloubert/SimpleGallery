@@ -35,7 +35,7 @@ If a file of the list was not found, it is ignored.
 
 ### Includes
 
-By default you can copy or link a file called `sgInclude.php` to the directory where the gallery script is included.
+By default you can copy or link a file called `sgInclude.php` to the directory where the gallery script is stored / linked.
 
 These files are included BEFORE app class is initialized and AFTER config files were loaded.
 
@@ -43,12 +43,12 @@ If the file was not found, it is ignored.
 
 ### Scripts
 
-By default you can copy or link a file called `sgScript.js` to the directory where the gallery script is included.
+By default you can copy or link a file called `sgScript.js` to the directory where the gallery script is stored / linked.
 
 If the file was not found, it is ignored.
 
 ### Styles
 
-By default you can copy or link a file called `sgStyle.css` to the directory where the gallery script is included.
+By default you can copy or link a file called `sgStyle.css` to the directory where the gallery script is stored / linked.
 
 If the file was not found, it is ignored.
