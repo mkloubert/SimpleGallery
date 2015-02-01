@@ -7,6 +7,8 @@ It makes use of
 * [Bootstrap](http://getbootstrap.com/) with [Darkly](http://bootswatch.com/) theme
 * [jQuery](http://jquery.com/)
 
+Have a look at the [wiki](https://github.com/mkloubert/SimpleGallery/wiki) if you need more detailed documentation.
+
 ## Requirements
 
 * PHP 5.2 or later
