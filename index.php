@@ -54,8 +54,10 @@ $GLOBALS['conf']['custom']['styles']   = array(
 );
 
 // features
-$GLOBALS['conf']['features']             = array();
-$GLOBALS['conf']['features']['download'] = false;    // download basket
+$GLOBALS['conf']['features']              = array();
+$GLOBALS['conf']['features']['download']  = false;    // download basket
+$GLOBALS['conf']['features']['favorites'] = false;    // favorites
+$GLOBALS['conf']['features']['geo']       = true;     // geo (tagging)
 
 // media
 $GLOBALS['conf']['media']              = array();
@@ -174,7 +176,24 @@ class SimpleGallery {
      * @return boolean Feature is enabled or not.
      */
     public function canDownloadBasket() {
+    	if (!class_exists('ZipArchive')) {
+    		return false;
+    	}
+    	
         return $this->Config->features->download;
+    }
+    
+    /**
+     * Gets if geo data can be extracted from an image or not.
+     * 
+     * @return boolean Can extract geo data from image or not.
+     */
+    public function canExtractGeoData() {
+    	if (!function_exists('exif_read_data')) {
+    		return false;
+    	}
+    	
+    	return $this->Config->features->geo;
     }
     
     /**
@@ -183,6 +202,11 @@ class SimpleGallery {
      * @return boolean Can handle favorites or not.
      */
     public function canManageFavorites() {
+        if (!$this->Config->features->favorites) {
+        	return false;
+        }
+        
+        //TODO check if session and cookies work
         return true;
     }
     
@@ -202,19 +226,12 @@ class SimpleGallery {
     /**
      * Encodes a string for use in JavaScript.
      * 
-     * @param string $str The string to encode.
+     * @param mixed $val The value to encode.
      * 
      * @return string The encoded JavaScript expression.
      */
-    public function encodeJs($str) {
-        if (is_null($str)) {
-            return 'null';
-        }
-        
-        $str = str_ireplace('\\', '\\\\', $str);
-        $str = str_ireplace("'" , "\\'" , $str);
-        
-        return "'" . $str . "'";
+    public function encodeJs($val) {
+        return json_encode($val);
     }
     
     /**
@@ -277,6 +294,10 @@ class SimpleGallery {
      *               NULL indicates that the operation is NOT suppoted.
      */
     public function getExif($file) {
+    	if (!$this->canExtractGeoData()) {
+    		return null;
+    	}
+    	
         switch($this->getMimeType($file)) {
             case 'image/jpeg':
             case 'image/tiff':
@@ -1745,7 +1766,9 @@ if ($executeGallery) {
               <td class="sgColLeft"># of pictures:</td>
               <td class="sgColRight sgTotalPicCount">---</td>
             </tr>
-            
+
+<?php if ($sg->canManageFavorites()): ?>
+          
             <tr>
               <td class="sgColLeft">Favorites:</td>
               <td class="sgColRight sgFavorites">
@@ -1756,6 +1779,8 @@ if ($executeGallery) {
                   </div>
               </td>
             </tr>
+            
+<?php endif; ?>
 
 <?php if ($sg->canDownloadBasket()): ?>
 
@@ -2015,6 +2040,9 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
               var newBtnArea = $('<p class="sgThumbBtnArea"></p>');
               {
+
+<?php if ($sg->canManageFavorites()): ?>
+
                   // favorite button
                   var newFavBtn = $('<a class="btn sgFavBtn" role="button">' + 
                                     '<span class="glyphicon glyphicon-heart" aria-hidden="true"></span>' + 
@@ -2061,6 +2089,8 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                       newFavBtn.appendTo(newBtnArea);
                   }
 
+<?php endif; ?>
+
 <?php if ($sg->canDownloadBasket()): ?>
 
                   // download basket
@@ -2100,6 +2130,8 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                   
 <?php endif; ?>
 
+<?php if ($sg->canExtractGeoData()): ?>
+
                   // add GEO button?
                   if (file.geo) {
                       var newGeoBtn = $('<a class="btn btn-primary sgGeoBtn" role="button">' + 
@@ -2114,6 +2146,9 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                       });
                       newGeoBtn.appendTo(newBtnArea);
                   }
+
+<?php endif; ?>
+
               }
               newBtnArea.appendTo(newCaption);
 
@@ -2284,10 +2319,10 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
                             
                             // try get GPS coordinates
                             $gps = null;
-                            $exif = $sg->getExif($sg->getCurrentDirectory() . $file);
-                            if (is_array($exif)) {
-                                $gps = $sg->getGps($exif);
-                            }
+	                        $exif = $sg->getExif($sg->getCurrentDirectory() . $file);
+	                        if (is_array($exif)) {
+	                            $gps = $sg->getGps($exif);
+	                        }
                             
                             // try find more words for filter feature
                             // from IPTC data
@@ -2323,7 +2358,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
               SimpleGallery.vars.imagesToLoad.push({
                   geo: <?php echo !is_array($gps) ? 'null' : sprintf('{ lat: %s, long: %s }', $gps['lat'], $gps['long']); ?>,
                   id: <?php echo $sg->encodeJs(trim($fileId)); ?>,
-                  isFav: <?php echo $sg->isFavorite($file) ? 'true' : 'false'; ?>,
+                  isFav: <?php echo $sg->encodeJs($sg->canManageFavorites() && $sg->isFavorite($file)); ?>,
                   name: <?php echo $sg->encodeJs(trim($file)); ?>,
                   searchExpr: <?php echo $sg->encodeJs(implode(' ', $searchExpr)); ?>,
               });

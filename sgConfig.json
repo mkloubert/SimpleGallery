@@ -1,6 +1,7 @@
 {
     "features": {
-        "download": true
+        "download": true,
+        "favorites": true
     },
     
     "thumbs": {
