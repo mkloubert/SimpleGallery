@@ -171,15 +171,29 @@ class SimpleGallery {
     }
     
     /**
+     * Checks if thumbs can be created or not.
+     * 
+     * @return boolean Can create thumbs or not.
+     */
+    public function canCreateThumbs() {
+        if (!(extension_loaded('gd') && function_exists('gd_info'))) {
+            // GD library not loaded
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
      * Gets if the "download basket" feature is enabled or not.
      *
      * @return boolean Feature is enabled or not.
      */
     public function canDownloadBasket() {
-    	if (!class_exists('ZipArchive')) {
-    		return false;
-    	}
-    	
+        if (!class_exists('ZipArchive')) {
+            return false;
+        }
+        
         return $this->Config->features->download;
     }
     
@@ -189,11 +203,11 @@ class SimpleGallery {
      * @return boolean Can extract geo data from image or not.
      */
     public function canExtractGeoData() {
-    	if (!function_exists('exif_read_data')) {
-    		return false;
-    	}
-    	
-    	return $this->Config->features->geo;
+        if (!function_exists('exif_read_data')) {
+            return false;
+        }
+        
+        return $this->Config->features->geo;
     }
     
     /**
@@ -203,7 +217,7 @@ class SimpleGallery {
      */
     public function canManageFavorites() {
         if (!$this->Config->features->favorites) {
-        	return false;
+            return false;
         }
         
         //TODO check if session and cookies work
@@ -294,10 +308,10 @@ class SimpleGallery {
      *               NULL indicates that the operation is NOT suppoted.
      */
     public function getExif($file) {
-    	if (!$this->canExtractGeoData()) {
-    		return null;
-    	}
-    	
+        if (!$this->canExtractGeoData()) {
+            return null;
+        }
+        
         switch($this->getMimeType($file)) {
             case 'image/jpeg':
             case 'image/tiff':
@@ -805,72 +819,82 @@ class SimpleGallery {
                     $imgFile = realpath($this->getCurrentDirectory() . $this->getFileName());
                     if (false !== $imgFile) {
                         if ($this->isImageFile($imgFile)) {
-                            $isCached = true;
-                            
-                            $img = $this->getThumbFromCache($imgFile);
-                            if (!is_resource($img)) {
-                                $isCached = false;
+                            if ($this->canCreateThumbs()) {
+                                // output thumb
                                 
-                                // get resized image from file
-                                $img = $this->resizeImageFromFile($imgFile,
-                                                                  $this->Config->thumbs->max_width,
-                                                                  $this->Config->thumbs->max_height);
-                              
-                                // correct orentation if needed
-                                $exif = $this->getExif($imgFile);
-                                if (is_array($exif)) {
-                                    foreach ($exif as $ek => $ev) {
-                                        $leaveFor = false;
-                                        
-                                        switch(trim(strtolower($ek))) {
-                                            case 'orientation':
-                                                {
-                                                    $leaveFor = true;
-                                                    
-                                                    $rotatedImage = null;
-                                                    switch (trim($ev)) {
-                                                        case '3':
-                                                            $rotatedImage = imagerotate($img, 180, 0);
-                                                            break;
-                                                    
-                                                        case '6':
-                                                            $rotatedImage = imagerotate($img, -90, 0);
-                                                            break;
-                                                    
-                                                        case '8':
-                                                            $rotatedImage = imagerotate($img, 90, 0);
-                                                            break;
+                                $isCached = true;
+                                
+                                $img = $this->getThumbFromCache($imgFile);
+                                if (!is_resource($img)) {
+                                    $isCached = false;
+                                    
+                                    // get resized image from file
+                                    $img = $this->resizeImageFromFile($imgFile,
+                                                                      $this->Config->thumbs->max_width,
+                                                                      $this->Config->thumbs->max_height);
+                                    
+                                    // correct orentation if needed
+                                    $exif = $this->getExif($imgFile);
+                                    if (is_array($exif)) {
+                                        foreach ($exif as $ek => $ev) {
+                                            $leaveFor = false;
+                                    
+                                            switch(trim(strtolower($ek))) {
+                                                case 'orientation':
+                                                    {
+                                                        $leaveFor = true;
+                                    
+                                                        $rotatedImage = null;
+                                                        switch (trim($ev)) {
+                                                            case '3':
+                                                                $rotatedImage = imagerotate($img, 180, 0);
+                                                                break;
+                                    
+                                                            case '6':
+                                                                $rotatedImage = imagerotate($img, -90, 0);
+                                                                break;
+                                    
+                                                            case '8':
+                                                                $rotatedImage = imagerotate($img, 90, 0);
+                                                                break;
+                                                        }
+                                    
+                                                        if (is_resource($rotatedImage)) {
+                                                            imagedestroy($img);
+                                    
+                                                            $img = $rotatedImage;
+                                                        }
                                                     }
-                                                    
-                                                    if (is_resource($rotatedImage)) {
-                                                        imagedestroy($img);
-                                                    
-                                                        $img = $rotatedImage;
-                                                    }
-                                                }
+                                                    break;
+                                            }
+                                    
+                                            if ($leaveFor) {
                                                 break;
-                                        }
-                                        
-                                        if ($leaveFor) {
-                                            break;
+                                            }
                                         }
                                     }
+                                    
+                                    $this->saveThumbToCache($img, $imgFile);
                                 }
                                 
-                                $this->saveThumbToCache($img, $imgFile);
+                                // output and free resources
+                                if (is_resource($img)) {
+                                    if ($isCached) {
+                                        $this->sendThumbHeaders('image/png');
+                                        imagepng($img);
+                                    }
+                                    else {
+                                        $this->outputThumb($img);
+                                    }
+                                     
+                                    imagedestroy($img);
+                                }
                             }
-                            
-                            // output and free resources
-                            if (is_resource($img)) {
-                            	if ($isCached) {
-                            		$this->sendThumbHeaders('image/png');
-                            		imagepng($img);
-                            	}
-                            	else {
-                            		$this->outputThumb($img);
-                            	}
-                            	
-                            	imagedestroy($img);
+                            else {
+                                // direct output
+                                
+                                $this->sendThumbHeaders($this->getMimeType($imgFile));
+                                readfile($imgFile);
                             }
                         }
                     }
@@ -934,7 +958,7 @@ class SimpleGallery {
                 
             case '4':
                 // toggle favorite state of a file
-                {
+                if ($this->canManageFavorites()) {
                     $jsonResult       = new stdClass();
                     $jsonResult->code = null;
                     $jsonResult->data = null;
@@ -968,12 +992,14 @@ class SimpleGallery {
                     
                     header('Content-type: application/json; charset=utf-8');
                     echo json_encode($jsonResult);
+                    
+                    return true;  // mark as 'handled'
                 }
-                return true;  // mark as 'handled'
+                break;
                 
             case '5':
                 // clear favorites
-                {
+                if ($this->canManageFavorites()) {
                     $jsonResult       = new stdClass();
                     $jsonResult->code = null;
                     
@@ -991,8 +1017,10 @@ class SimpleGallery {
                     
                     header('Content-type: application/json; charset=utf-8');
                     echo json_encode($jsonResult);
+                    
+                    return true;  // mark as 'handled'
                 }
-                return true;  // mark as 'handled'
+                break;
                 
             case '6':
                 // download basket
@@ -1058,9 +1086,9 @@ class SimpleGallery {
      * @return boolean Operation was successful or not.
      */
     public function init() {
-    	$this->loadConfig();
-    	
-    	return true;
+        $this->loadConfig();
+        
+        return true;
     }
     
     /**
@@ -1361,7 +1389,7 @@ class SimpleGallery {
         }
     
         return $this->outputThumb($img,
-        		                  $dir . $this->getThumbFilename($filename));
+                                  $dir . $this->getThumbFilename($filename));
     }
     
     /**
@@ -1528,12 +1556,12 @@ foreach ($GLOBALS['conf']['custom']['config'] as $confFile) {
 
 // custom include files
 foreach ($GLOBALS['conf']['custom']['includes'] as $incFile) {
-	$customIncFile = realpath($incFile);
-	if (false === $customIncFile) {
-		continue;
-	}
-	
-	require $customIncFile;
+    $customIncFile = realpath($incFile);
+    if (false === $customIncFile) {
+        continue;
+    }
+    
+    require $customIncFile;
 }
 
 
@@ -1542,7 +1570,7 @@ foreach ($GLOBALS['conf']['custom']['includes'] as $incFile) {
 // or of a subclass of it
 $GLOBALS['sg'] = $sg = new $GLOBALS['conf']['app']['class']();
 if (!$sg->init()) {
-	throw new Exception('APP INITIALIZATION FAILED!');
+    throw new Exception('APP INITIALIZATION FAILED!');
 }
 
 // start session
