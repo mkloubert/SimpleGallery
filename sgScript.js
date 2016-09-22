@@ -1,4 +1,6 @@
 
-$(document).ready(function() {
-	//TODO
+/* additional scripts */
+
+jQuery(function() {
+    //TODO
 });
