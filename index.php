@@ -41,6 +41,10 @@ class Gallery {
      */
     protected $_config;
     /**
+     * @var array
+     */
+    protected $_iptcIndexes;
+    /**
      * @var \DateTimeInterface
      */
     protected $_now;
@@ -181,6 +185,42 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 !function(a){"use strict";a.matchMedia=a.matchMedia||function(a){var b,c=a.documentElement,d=c.firstElementChild||c.firstChild,e=a.createElement("body"),f=a.createElement("div");return f.id="mq-test-1",f.style.cssText="position:absolute;top:-100em",e.style.background="none",e.appendChild(f),function(a){return f.innerHTML='&shy;<style media="'+a+'"> #mq-test-1 { width: 42px; }</style>',c.insertBefore(e,d),b=42===f.offsetWidth,c.removeChild(e),{matches:b,media:a}}}(a.document)}(this),function(a){"use strict";function b(){u(!0)}var c={};a.respond=c,c.update=function(){};var d=[],e=function(){var b=!1;try{b=new a.XMLHttpRequest}catch(c){b=new a.ActiveXObject("Microsoft.XMLHTTP")}return function(){return b}}(),f=function(a,b){var c=e();c&&(c.open("GET",a,!0),c.onreadystatechange=function(){4!==c.readyState||200!==c.status&&304!==c.status||b(c.responseText)},4!==c.readyState&&c.send(null))};if(c.ajax=f,c.queue=d,c.regex={media:/@media[^\{]+\{([^\{\}]*\{[^\}\{]*\})+/gi,keyframes:/@(?:\-(?:o|moz|webkit)\-)?keyframes[^\{]+\{(?:[^\{\}]*\{[^\}\{]*\})+[^\}]*\}/gi,urls:/(url\()['"]?([^\/\)'"][^:\)'"]+)['"]?(\))/g,findStyles:/@media *([^\{]+)\{([\S\s]+?)$/,only:/(only\s+)?([a-zA-Z]+)\s?/,minw:/\([\s]*min\-width\s*:[\s]*([\s]*[0-9\.]+)(px|em)[\s]*\)/,maxw:/\([\s]*max\-width\s*:[\s]*([\s]*[0-9\.]+)(px|em)[\s]*\)/},c.mediaQueriesSupported=a.matchMedia&&null!==a.matchMedia("only all")&&a.matchMedia("only all").matches,!c.mediaQueriesSupported){var g,h,i,j=a.document,k=j.documentElement,l=[],m=[],n=[],o={},p=30,q=j.getElementsByTagName("head")[0]||k,r=j.getElementsByTagName("base")[0],s=q.getElementsByTagName("link"),t=function(){var a,b=j.createElement("div"),c=j.body,d=k.style.fontSize,e=c&&c.style.fontSize,f=!1;return b.style.cssText="position:absolute;font-size:1em;width:1em",c||(c=f=j.createElement("body"),c.style.background="none"),k.style.fontSize="100%",c.style.fontSize="100%",c.appendChild(b),f&&k.insertBefore(c,k.firstChild),a=b.offsetWidth,f?k.removeChild(c):c.removeChild(b),k.style.fontSize=d,e&&(c.style.fontSize=e),a=i=parseFloat(a)},u=function(b){var c="clientWidth",d=k[c],e="CSS1Compat"===j.compatMode&&d||j.body[c]||d,f={},o=s[s.length-1],r=(new Date).getTime();if(b&&g&&p>r-g)return a.clearTimeout(h),h=a.setTimeout(u,p),void 0;g=r;for(var v in l)if(l.hasOwnProperty(v)){var w=l[v],x=w.minw,y=w.maxw,z=null===x,A=null===y,B="em";x&&(x=parseFloat(x)*(x.indexOf(B)>-1?i||t():1)),y&&(y=parseFloat(y)*(y.indexOf(B)>-1?i||t():1)),w.hasquery&&(z&&A||!(z||e>=x)||!(A||y>=e))||(f[w.media]||(f[w.media]=[]),f[w.media].push(m[w.rules]))}for(var C in n)n.hasOwnProperty(C)&&n[C]&&n[C].parentNode===q&&q.removeChild(n[C]);n.length=0;for(var D in f)if(f.hasOwnProperty(D)){var E=j.createElement("style"),F=f[D].join("\n");E.type="text/css",E.media=D,q.insertBefore(E,o.nextSibling),E.styleSheet?E.styleSheet.cssText=F:E.appendChild(j.createTextNode(F)),n.push(E)}},v=function(a,b,d){var e=a.replace(c.regex.keyframes,"").match(c.regex.media),f=e&&e.length||0;b=b.substring(0,b.lastIndexOf("/"));var g=function(a){return a.replace(c.regex.urls,"$1"+b+"$2$3")},h=!f&&d;b.length&&(b+="/"),h&&(f=1);for(var i=0;f>i;i++){var j,k,n,o;h?(j=d,m.push(g(a))):(j=e[i].match(c.regex.findStyles)&&RegExp.$1,m.push(RegExp.$2&&g(RegExp.$2))),n=j.split(","),o=n.length;for(var p=0;o>p;p++)k=n[p],l.push({media:k.split("(")[0].match(c.regex.only)&&RegExp.$2||"all",rules:m.length-1,hasquery:k.indexOf("(")>-1,minw:k.match(c.regex.minw)&&parseFloat(RegExp.$1)+(RegExp.$2||""),maxw:k.match(c.regex.maxw)&&parseFloat(RegExp.$1)+(RegExp.$2||"")})}u()},w=function(){if(d.length){var b=d.shift();f(b.href,function(c){v(c,b.href,b.media),o[b.href]=!0,a.setTimeout(function(){w()},0)})}},x=function(){for(var b=0;b<s.length;b++){var c=s[b],e=c.href,f=c.media,g=c.rel&&"stylesheet"===c.rel.toLowerCase();e&&g&&!o[e]&&(c.styleSheet&&c.styleSheet.rawCssText?(v(c.styleSheet.rawCssText,e,f),o[e]=!0):(!/^([a-zA-Z:]*\/\/)/.test(e)&&!r||e.replace(RegExp.$1,"").split("/")[0]===a.location.host)&&("//"===e.substring(0,2)&&(e=a.location.protocol+e),d.push({href:e,media:f})))}w()};x(),c.update=x,c.getEmValue=t,a.addEventListener?a.addEventListener("resize",b,!1):a.attachEvent&&a.attachEvent("onresize",b)}}(this);                    
                     <?php
                     break;    
+
+                case 'sg-style.css':
+                    ?>
+body {
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+#sg-navbar-top .sg-search-form .input-group {
+    line-height: 70px;
+    margin: 0;
+    vertical-align: middle;
+}
+
+#sg-navbar-top .sg-search-form input[type="text"] {
+    height: 39px;
+}
+
+#sg-navbar-bottom .container {
+    line-height: 70px;
+    text-align: center;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-caption {
+    text-align: center;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail {
+    padding: 1em;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail img {
+    height: 10em;
+}
+                    <?php
+                    break;
             }
 
             $content = \ob_get_contents();
@@ -193,6 +233,189 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
         finally {
             \ob_end_clean();
         }
+    }
+
+    /**
+     * Returns a list of image files and folders.
+     *
+     * @param GalleryExecutionContext $ctx The underlying execution context.
+     *
+     * @return array The list with files and folders.
+     */
+    protected function getImageFoldersAndFiles($ctx) {
+        $filesAndFolders = [
+            'files' => [],
+            'folders' => [],
+        ];
+        
+        if (\is_dir($ctx->directory)) {
+            $dh = @\opendir($ctx->directory);
+            if (\is_resource($dh)) {
+                try {
+                    while (false !== ($item = readdir($dh))) {
+                        if ('.' === $item || '..' === $item) {
+                            continue;
+                        }
+
+                        $fullPath = \realpath($ctx->directory . $item);
+                        if (\is_file($fullPath) && $this->isImageFile($fullPath)) {
+                            $filesAndFolders['files'][] = [
+                                'name' => $item,
+                                'path' => './' . $item,
+                                'search' => $this->getSearchExpressions($fullPath),
+                            ];
+                        }
+                        else if (\is_dir($fullPath)) {
+                            $filesAndFolders['folders'][] = [
+                                'name' => $item,
+                                'path' => '/' . $item,
+                                'search' => $this->getSearchExpressions($fullPath),
+                            ];
+                        }
+                    }
+                }
+                finally {
+                    \closedir($dh);
+                }
+            }
+        }
+
+        return $filesAndFolders;
+    }
+
+    /**
+     * Tries to extract IPTC information from an (image) file.
+     *
+     * @param string $path The path of the file.
+     *
+     * @return array The data.
+     */
+    protected function getIPTC($path) {
+        $path = \realpath($path);
+
+        $result = [];
+
+        if (\function_exists("\\getimagesize") && \function_exists("\\iptcparse")) {
+            if (\is_file($path)) {
+                $imgInfo = [];
+
+                @\getimagesize($path, $imgInfo);
+                if (\is_array($imgInfo) && \array_key_exists('APP13', $imgInfo)) {
+                    $iptc = @\iptcparse($imgInfo['APP13']);
+                    if (\is_array($iptc)) {
+                        $result['caption']             = $this->getIPTCArrayDat($iptc, '2#120');
+                        $result['category']            = $this->getIPTCArrayDat($iptc, '2#015');
+                        $result['city']                = $this->getIPTCArrayDat($iptc, '2#090');
+                        $result['country']             = $this->getIPTCArrayDat($iptc, '2#101');
+                        $result['creation_date']       = $this->getIPTCArrayDat($iptc, '2#055');
+                        $result['credit_byline_title'] = $this->getIPTCArrayDat($iptc, '2#085');
+                        $result['graphic_name']        = $this->getIPTCArrayDat($iptc, '2#005');
+                        $result['headline']            = $this->getIPTCArrayDat($iptc, '2#105');
+                        $result['otr']                 = $this->getIPTCArrayDat($iptc, '2#103');
+                        $result['photo_source']        = $this->getIPTCArrayDat($iptc, '2#115');
+                        $result['photog']              = $this->getIPTCArrayDat($iptc, '2#080');
+                        $result['source']              = $this->getIPTCArrayDat($iptc, '2#110');
+                        $result['spec_instr']          = $this->getIPTCArrayDat($iptc, '2#040');
+                        $result['state']               = $this->getIPTCArrayDat($iptc, '2#095');
+                        $result['supp_categories']     = $this->getIPTCArrayDat($iptc, '2#020');
+                        $result['urgency']             = $this->getIPTCArrayDat($iptc, '2#010');
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Tries to return data from an IPTC array safe.
+     *
+     * @param array $iptc The IPTC array.
+     * @param mixed $index The primary index.
+     * @param mixed $subIndex The secondary index.
+     * @param mixed $defaultVal The default value.
+     *
+     * @return mixed The value from $iptc or the default value if not found.
+     */
+    protected function getIPTCArrayDat($iptc, $index, $subIndex = 0, $defaultVal = null) {
+        if (!\is_array($iptc)) {
+            return $defaultVal;
+        }
+
+        if (!\array_key_exists($index, $iptc)) {
+            return $defaultVal;
+        }
+
+        if (!\array_key_exists($subIndex, $iptc[$index])) {
+            return $defaultVal;
+        }
+
+        return $iptc[$index][$subIndex];
+    }
+
+    /**
+     * Tries to return a list of search expressions for a file or a folder.
+     *
+     * @param string $path The path of the file/folder.
+     *
+     * @return array The list of search expressions.
+     */
+    protected function getSearchExpressions($path) {
+        $path = \realpath($path);
+
+        $expr = [];
+
+        if (\is_file($path)) {
+            $pathInfo = @\pathinfo($path);
+            if (\is_array($pathInfo)) {
+                if (!empty($pathInfo['basename'])) {
+                    $expr[] = (string)$pathInfo['basename'];
+                }
+            }
+
+            // EXIF
+            if (\function_exists("\\exif_read_data")) {
+                $exif = @\exif_read_data($path);
+                if (\is_array($exif)) {
+                    foreach ($exif as $k => $v) {
+                        // $expr[] = \sprintf('%s => %s', $k, $v);
+                    }
+                }
+            }
+
+            // IPTC
+            $iptc = $this->getIPTC($path);
+            foreach ($this->_iptcIndexes as $i) {
+                if (empty($iptc[$i])) {
+                    continue;
+                }
+
+                $expr[] = $iptc[$i];
+            }
+        }
+        else if (\is_dir($path)) {
+            $pathInfo = @\pathinfo($path);
+            if (\is_array($pathInfo)) {
+                if (!empty($pathInfo['basename'])) {
+                    $expr[] = (string)$pathInfo['basename'];
+                }
+            }
+        }
+
+        // normalize
+        $expr = \array_map(function($x) {
+            return \trim(\strtolower($x));
+        }, $expr);
+
+        // remove empty
+        $expr = \array_filter($expr, function($x) {
+            return '' !== $x;
+        });
+
+        // remove duplicates
+        $expr = \array_unique($expr);
+
+        return $expr;
     }
 
     /**
@@ -209,6 +432,47 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
         $this->_now = new \DateTime();
 
         $this->_config = $config;
+
+        //TODO: read from config, if available
+        $this->_iptcIndexes = [
+            'caption',
+            'city',
+            'country',
+            'creation_date',
+            'credit_byline_title',
+            'graphic_name',
+            'headline',
+            'photo_source',
+            'photog',
+            'source',
+            'state'];
+    }
+
+    /**
+     * Checks if a file is an image or not.
+     * 
+     * @param string $path The file to check.
+     * 
+     * @return bool Is image or not.
+     */
+    protected function isImageFile($path) {
+        $path = \realpath($path);
+        if (\is_file($path)) {
+            $pathInfo = @\pathinfo($path);
+            if (\is_array($pathInfo)) {
+                if (!empty($pathInfo['extension'])) {
+                    switch (\trim(\strtolower($pathInfo['extension']))) {
+                        case 'gif':
+                        case 'jpeg':
+                        case 'jpg':
+                        case 'png':
+                            return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -278,6 +542,22 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
      * Outputs the page FOOTER.
      */
     protected function outputFooter() {
+?>
+<script type="text/javascript">
+
+jQuery(function() {
+    if ($SimpleGallery.events.pageLoaded) {
+        $SimpleGallery.events.pageLoaded();
+    }
+
+    if ($SimpleGallery.elements) {
+        $SimpleGallery.elements.body = jQuery('sg-body');
+    }
+});
+
+</script>
+<?php
+
         $jsFile = '';
         $styleFile = '';
         if (!empty($this->_config['files'])) {
@@ -298,33 +578,55 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
             $styleFile = 'sgStyle.css';
         }
 
+        // styles from config
+        if (!empty($this->_config['styles'])) {
+            foreach ($this->_config['styles'] as $style) {
+                $styleCode = $style;
+                $styleLang = 'text/css';
+
+                ?>
+        <style type="<?= \htmlspecialchars($styleLang) ?>">
+
+<?= $styleCode ?>
+
+        </style>
+            <?php
+            }
+        }
+
         $customCssFile = \realpath(SG_DIR_CURRENT . $styleFile);
         if (\is_file($customCssFile)) {
             ?>
         <style type="text/css">
 
-<?= @\readfile($customCssFile); ?>
+<?php @\readfile($customCssFile); ?>
 
         </style>
             <?php
         }
 
-        ?>
+        // scripts from config
+        if (!empty($this->_config['scripts'])) {
+            foreach ($this->_config['scripts'] as $script) {
+                $scriptCode = $script;
+                $scriptLang = 'text/javascript';
 
-        <script type="text/javascript">
-            jQuery(function() {
+                ?>
+        <script type="<?= \htmlspecialchars($scriptLang) ?>">
 
-            });
+<?= $scriptCode ?>
+
         </script>
-
-        <?php
+                <?php
+            }
+        }
 
         $customJsFile = \realpath(SG_DIR_CURRENT . $jsFile);
         if (\is_file($customJsFile)) {
             ?>
         <script type="text/javascript">
 
-<?= @\readfile($customJsFile); ?>
+<?php @\readfile($customJsFile); ?>
 
         </script>
             <?php
@@ -332,9 +634,9 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 
         ?>
 
-        <nav class="navbar navbar-default navbar-fixed-bottom">
+        <nav class="navbar navbar-default navbar-fixed-bottom" id="sg-navbar-bottom">
           <div class="container">
-            Copyright (&copy;) <?= $this->_now->format('Y') ?> Marcel J. Kloubert; Licensed under AGPL v3.0
+            Copyright (&copy;) <?= \htmlentities($this->_now->format('Y')) ?> <a href="https://github.com/mkloubert" target="_blank">Marcel J. Kloubert</a>; Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank">AGPL 3.0</a>
           </div>
         </nav>
     </body>
@@ -347,22 +649,30 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     protected function outputHeader() {
         ?><html>
     <head>
-
-        <style type="text/css">
-            body {
-                padding-top: 70px;
-                padding-bottom: 70px;
-            }
-        </style>
-
         <?php $this->outputJQuery(); ?>
 
         <?php $this->outputBootstrap(); ?>
 
         <?php $this->outputFontAwesome(); ?>
 
+        <?php $this->outputStyle(); ?>
+
         <script type="text/javascript">
             $SimpleGallery = {};
+
+            $SimpleGallery.elements = {};
+
+            $SimpleGallery.events = {};
+
+            $SimpleGallery.events.pageLoaded = function() {
+                if ($SimpleGallery.funcs.initSearchForm) {
+                    $SimpleGallery.funcs.initSearchForm();
+                }
+
+                if ($SimpleGallery.funcs.reloadImages) {
+                    $SimpleGallery.funcs.reloadImages();
+                }
+            };
 
             $SimpleGallery.funcs = {};
 
@@ -447,17 +757,246 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
                     }
                 });
             };
+
+            $SimpleGallery.funcs.createFileItem = function(file) {
+                if (!file) {
+                    return;
+                }
+
+                var item = jQuery('<div class="col-xs-12 col-sm-6 col-md-4 sg-item sg-file-item">' +
+                                  '<div class="thumbnail sg-thumbnail">' +
+                                  '<img />' +
+                                  '<div class="caption sg-caption">' +
+                                  '<h3></h3>' +
+                                  '</div>' +
+                                  '</div>' +
+                                  '<input type="hidden" class="sg-search-expr" />' +
+                                  '</div>');
+                
+                if (file.path) {
+                    item.find('img')
+                        .attr('src', file.path);
+                }
+
+                if (file.name) {
+                    item.find('.caption h3')
+                        .text($.trim(file.name));
+                }
+
+                if (file.search && file.search.length > 0) {
+                    item.find('.sg-search-expr')
+                        .val(file.search.join(' '));
+
+                    console.log(item.find('.sg-search-expr')
+                        .val());
+                }
+
+                return item;
+            };
+
+            $SimpleGallery.funcs.createFileAndFolderList = function(folders, files) {
+                if (!folders) {
+                    folders = [];
+                }
+
+                if (!files) {
+                    files = [];
+                }
+
+                if (folders.length > 0 || files.length > 0) {
+                    var list = jQuery('<div class="panel panel-primary sg-folder-and-file-list">' +
+                                      '<div class="panel-heading">Images</div>' +
+                                      '<div class="panel-body"><div class="row sg-folder-list sg-file-list"></div></div>' +
+                                      '</div>');
+
+                    var folderList = list.find('.sg-folder-list');
+                    if ($SimpleGallery.funcs.createFolderItem) {
+                        for (var i = 0; i < folders.length; i++) {
+                            var f = folders[i];
+
+                            var folderItem = $SimpleGallery.funcs.createFolderItem(f);
+                            if (folderItem) {
+                                folderItem.appendTo(folderList);
+                            }
+                        }
+                    }
+
+                    var fileList = list.find('.sg-file-list');
+                    if ($SimpleGallery.funcs.createFileItem) {
+                        for (var i = 0; i < files.length; i++) {
+                            var f = files[i];
+
+                            var fileItem = $SimpleGallery.funcs.createFileItem(f);
+                            if (fileItem) {
+                                fileItem.appendTo(fileList);
+                            }
+                        }
+                    }
+
+                    return list;
+                }
+                else {
+                    //TODO
+                }
+            };
+
+            $SimpleGallery.funcs.createFolderItem = function(folder) {
+                //TODO
+                return;
+
+                if (!folder) {
+                    return;
+                }
+
+                var item = jQuery('');
+
+                return item;
+            };
+
+            $SimpleGallery.funcs.initSearchButton = function() {
+                var searchBtn = jQuery('#sg-navbar-top .sg-search-form .sg-search-btn');
+
+                var searchField = jQuery('#sg-navbar-top .sg-search-form .sg-search-field');
+                searchField.off('keyup').keyup(function() {
+                    searchBtn.click();
+                });
+            };
+
+            $SimpleGallery.funcs.initSearchField = function() {
+                var searchField = jQuery('#sg-navbar-top .sg-search-form .sg-search-field');
+
+                var searchBtn = jQuery('#sg-navbar-top .sg-search-form .sg-search-btn');
+                searchBtn.off('click').click(function() {
+                    if ($SimpleGallery.funcs.searchImages) {
+                        $SimpleGallery.funcs.searchImages(searchField.val());
+                    }
+                });
+            };
+
+            $SimpleGallery.funcs.initSearchForm = function() {
+                if ($SimpleGallery.funcs.initSearchField) {
+                    $SimpleGallery.funcs.initSearchField();
+                }
+
+                if ($SimpleGallery.funcs.initSearchButton) {
+                    $SimpleGallery.funcs.initSearchButton();
+                }
+            };
+
+            $SimpleGallery.funcs.reloadImages = function() {
+                if ($SimpleGallery.vars.isLoadingImages) {
+                    return;
+                }
+                
+                var pageBody = jQuery('#sg-body');
+
+                if ($SimpleGallery.funcs.ajax) {
+                    $SimpleGallery.vars.isLoadingImages = true;
+
+                    
+
+                    $SimpleGallery.funcs.ajax('get_image_files_and_folders', {
+                        'beforeSend': function(ctx) {
+                            
+                        },
+
+                        'success': function(ctx) {
+                            pageBody.html('');
+
+                            switch (ctx.data.code) {
+                                case 0:
+                                    if ($SimpleGallery.funcs.createFileAndFolderList) {
+                                        var list = $SimpleGallery.funcs.createFileAndFolderList(ctx.data.data.folders, ctx.data.data.files);
+                                        if (list) {
+                                            list.appendTo(pageBody);
+                                        }
+                                    }
+                                    break;
+                            }
+                        },
+
+                        'error': function(ctx) {
+                            console.log('ERROR: ' + ctx.error);
+                        },
+
+                        'complete': function(ctx) {
+                            $SimpleGallery.funcs.searchImages();
+
+                            $SimpleGallery.vars.isLoadingImages = false;
+                        }
+                    });
+                }
+            };
+
+            $SimpleGallery.funcs.searchImages = function(expr) {
+                if ($SimpleGallery.vars.isSearchingImages) {
+                    return;
+                }
+
+                $SimpleGallery.vars.isSearchingImages = true;
+
+                expr = jQuery.trim(expr).toLowerCase();
+                var exprParts = expr.split(" ");
+
+                jQuery('.sg-folder-and-file-list .sg-item').each(function() {
+                    var item = $(this);
+
+                    var isVisible = true;
+                    if ('' !== expr) {
+                        var inputField = item.find('.sg-search-expr');
+
+                        var itemExpr = jQuery.trim(inputField.val()).toLowerCase();
+                        for (var i = 0; i < exprParts.length; i++) {
+                            var p = jQuery.trim(exprParts[i]);
+                            if ('' !== p) {
+                                if (itemExpr.indexOf(p) < 0) {
+                                    isVisible = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (isVisible) {
+                        item.show();
+                    }
+                    else {
+                        item.hide();
+                    }
+                });
+
+                //TODO
+                
+                $SimpleGallery.vars.isSearchingImages = false;
+            };
+
+            $SimpleGallery.vars = {};
+
+            $SimpleGallery.vars.isLoadingImages = false;
+            $SimpleGallery.vars.isSearchingImages = false;
         </script>
     </head>
 
     <body>
-        <nav class="navbar navbar-default navbar-fixed-top">
+        <nav class="navbar navbar-default navbar-fixed-top" id="sg-navbar-top">
           <div class="container">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">SimpleGallery</a>
+                <a class="navbar-brand" href="https://github.com/mkloubert/SimpleGallery" target="_blank">SimpleGallery</a>
             </div>
+
+            <form class="navbar-form navbar-right sg-search-form" role="search">
+              <div class="form-group">
+                  <div class="input-group">
+                    <input type="text" class="form-control sg-search-field" placeholder="Search...">
+
+                    <div class="input-group-addon sg-search-btn"><i class="fa fa-search" aria-hidden="true"></i></div>
+                  </div>
+              </div>
+            </form>
           </div>
         </nav>
+
+        <div class="container" id="sg-body"></div>
 
         <?php
     }
@@ -475,6 +1014,22 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     
 </script>
 
+        <?php
+    }
+
+    /**
+     * Outputs the default page style.
+     */
+    protected function outputStyle() {
+        ?>
+
+<!-- sg-style.css -->
+<style type="text/css">
+
+<?= $this->getFile('sg-style.css') ?>
+
+</style>
+        
         <?php
     }
 
@@ -552,6 +1107,19 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
                     \header(':', true, 404);
                 }
                 break;
+            
+            case 'get_image_files_and_folders':
+                \header('Content-type: application/json');
+                $foldersAndFiles = $this->getImageFoldersAndFiles($ctx);
+                if (empty($foldersAndFiles)) {
+                    $foldersAndFiles = [];
+                }
+
+                echo \json_encode([
+                    'code' => 0,
+                    'data' => $foldersAndFiles,
+                ]);
+                break;
 
             default:
                 return $this->showPage();
@@ -588,6 +1156,12 @@ class GalleryException extends \Exception {
  * @package MarcelJoachimKloubert\SimpleGallery
  */
 class GalleryExecutionContext {
+    /**
+     * The full path of the current directory.
+     * 
+     * @var string
+     */
+    public $directory;
 }
 
 $gallery = null;
@@ -731,6 +1305,7 @@ if ($isAuthorized) {
         // $gallery->run()
         if ($galleryClass->hasMethod(SG_METHOD_RUN)) {
             $runCtx = new GalleryExecutionContext();
+            $runCtx->directory = \realpath(__DIR__) . \DIRECTORY_SEPARATOR;  //TODO
 
             $runArgs = [ $runCtx ];
             if (!$initInvoked) {

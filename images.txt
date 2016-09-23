@@ -1,0 +1,13 @@
+The following image files were taken from:
+
+
+https://www.iptc.org/std/photometadata/documentation/GenericGuidelines/Documents/iptccoreandextensionexamples.htm
+    - image9_0.jpg
+    - image9_1.jpg
+    - image9_2.jpg
+
+http://www.demo.vienna-pictures.com/details.php?image_id=44
+    - erstes_testbilder.jpg
+
+http://www.summitpost.org/test-this-image-contains-exif-data/769474
+    - 769474.JPG
