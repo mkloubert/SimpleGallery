@@ -208,6 +208,17 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     }
 
     /**
+     * Handles an error or exception.
+     *
+     * @param array $data The error data.
+     *
+     * @return null|bool (false) indicates that the error was NOT handled.
+     */
+    public function onError($data) {
+        //TODO
+    }
+
+    /**
      * Outputs all Bootstrap specific stuff.
      */
     protected function outputBootstrap() {
@@ -466,12 +477,14 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     /**
      * Runs the gallery app.
      *
+     * @param GalleryExecutionContext $ctx The execution context.
+     *
      * @return null|false|int If (false) the script will throw an generic exception.
      *                        If not (null) the result will be handled as exit code (integer value).
      *
      * @throws \Exception Something went wrong.
      */
-    public function run() {
+    public function run($ctx) {
         $action = null;
         if (!empty($_REQUEST['action'])) {
             $action = \trim(\strtolower($_REQUEST['action']));
@@ -553,144 +566,195 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     }
 }
 
+/**
+ * A Gallery exception.
+ *
+ * @author Marcel Joachim Kloubert <marcel.kloubert@gmx.net>
+ *
+ * @package MarcelJoachimKloubert\SimpleGallery
+ */
+class GalleryException extends \Exception {
+}
+
+/**
+ * Gallery execution context.
+ *
+ * @author Marcel Joachim Kloubert <marcel.kloubert@gmx.net>
+ *
+ * @package MarcelJoachimKloubert\SimpleGallery
+ */
+class GalleryExecutionContext {
+}
+
+$gallery = null;
+
+$handleErrorOrException = function($arg) use (&$gallery) {
+    $errorHandled = false;
+
+    if (\is_object($gallery)) {
+        $galleryClass = new \ReflectionObject($gallery);
+
+        // $gallery->onError()
+        if ($galleryClass->hasMethod('onError')) {
+            $errorHandled = false !== $galleryClass->getMethod('onError')
+                                                   ->invoke($gallery,
+                                                            $arg);
+        }
+    }
+
+    if (!$errorHandled) {
+        \header(':', true, 500);
+    }
+};
+
+// global error handler
+\set_error_handler(function($code, $msg, $file, $line) use ($handleErrorOrException) {
+    $handleErrorOrException([
+        'code' => $code,
+        'message' => $msg,
+        'file' => $file,
+        'line' => $line,
+    ]);
+});
+
+\set_exception_handler(function($ex) use ($handleErrorOrException) {
+    $handleErrorOrException([
+        'exception' => $ex,
+    ]);
+});
+
 \chdir(SG_DIR_CURRENT);
 
-try {
-    $configFile = \realpath(SG_DIR_CURRENT . 'sgConfig.php');
-    if (\is_file($configFile)) {
-        $config = require $configFile;
-    }
+$configFile = \realpath(SG_DIR_CURRENT . 'sgConfig.php');
+if (\is_file($configFile)) {
+    $config = require $configFile;
+}
 
-    if (empty($config)) {
-        $config = [];
-    }
+if (empty($config)) {
+    $config = [];
+}
 
-    $isAuthorized = true;
+$isAuthorized = true;
 
-    if (!empty($config['users'])) {
-        $isAuthorized = false;
+if (!empty($config['users'])) {
+    $isAuthorized = false;
 
-        if (!empty($_SERVER['PHP_AUTH_USER'])) {
-            $user = \trim(\strtolower($_SERVER['PHP_AUTH_USER']));
+    if (!empty($_SERVER['PHP_AUTH_USER'])) {
+        $user = \trim(\strtolower($_SERVER['PHP_AUTH_USER']));
+
+        $pwd = '';
+        if (!empty($_SERVER['PHP_AUTH_PW'])) {
             $pwd = (string)$_SERVER['PHP_AUTH_PW'];
+        }
 
-            foreach ($config['users'] as $userEntry) {
-                $userName = '';
-                if (!empty($userEntry['name'])) {
-                    $userName = \trim(\strtolower($userEntry['name']));
+        foreach ($config['users'] as $userEntry) {
+            $userName = '';
+            if (!empty($userEntry['name'])) {
+                $userName = \trim(\strtolower($userEntry['name']));
+            }
+
+            if ($user === $userName) {
+                $userPwd = '';
+                if (!empty($userEntry['password'])) {
+                    $userPwd = (string)$userEntry['password'];
                 }
 
-                if ($user === $userName) {
-                    $userPwd = '';
-                    if (!empty($userEntry['password'])) {
-                        $userPwd = (string)$userEntry['password'];
-                    }
-                    
-                    if ($pwd === $userPwd) {
-                        $isAuthorized = true;
-                        break;
-                    }
+                if ($pwd === $userPwd) {
+                    $isAuthorized = true;
+                    break;
                 }
             }
         }
     }
+}
 
-    if ($isAuthorized) {
-        $includeFileName = '';
-        if (!empty($config['files'])) {
-            if (!empty($config['files']['include'])) {
-                // custom include file
-                $includeFileName = \trim($config['files']['include']);
+$realm = 'SimpleGallery (https://github.com/mkloubert/SimpleGallery)';
+if (!empty($config['realm'])) {
+    $realm = \trim($config['realm']);
+}
+
+if ($isAuthorized) {
+    if (!empty($config['files'])) {
+        if (!empty($config['files']['include'])) {
+            // custom include file
+            $includeFileName = \trim($config['files']['include']);
+        }
+    }
+
+    if (empty($includeFileName)) {
+        $includeFileName = 'sgInclude.php';
+    }
+
+    // use include file?
+    $includeFileUsed = false;
+    $includeFile = SG_DIR_CURRENT . $includeFileName;
+    if (\is_file($includeFile)) {
+        require_once $includeFile;
+
+        $includeFileUsed = true;
+    }
+
+    // custom class?
+    if (!empty($config['class'])) {
+        $galleryClassName = \trim($config['class']);
+    }
+
+    if (empty($galleryClassName)) {
+        $galleryClassName = Gallery::class;
+    }
+
+    if (\class_exists($galleryClassName)) {
+        $galleryClass = new \ReflectionClass($galleryClassName);
+
+        $gallery = new $galleryClassName();
+
+        // $gallery->init()
+        $initInvoked = false;
+        if ($galleryClass->hasMethod('init')) {
+            $initResult = $galleryClass->getMethod('init')
+                                       ->invoke($gallery,
+                                                $config);
+            $initInvoked = true;
+
+            if (false === $initResult) {
+                throw new GalleryException('Could not initialize gallery!', 0);
+            }
+            else if (null !== $initResult) {
+                exit((int)\trim($initResult));  // handle as exit code
             }
         }
 
-        if (empty($includeFileName)) {
-            $includeFileName = 'sgInclude.php';
-        }
+        // $gallery->run()
+        if ($galleryClass->hasMethod('run')) {
+            $runCtx = new GalleryExecutionContext();
 
-        $includeFileIncluded = false;
-        $includeFile = SG_DIR_CURRENT . $includeFileName;
-        if (\is_file($includeFile)) {
-            require_once $includeFile;
-
-            $includeFileIncluded = true;
-        }
-
-        // custom class?
-        if (!empty($config['class'])) {
-            $galleryClassName = \trim($config['class']);
-        }
-
-        if (empty($galleryClassName)) {
-            $galleryClassName = Gallery::class;
-        }
-
-        if (\class_exists($galleryClassName)) {
-            $galleryClass = new \ReflectionClass($galleryClassName);
-
-            /**
-             * @var \MarcelJoachimKloubert\SimpleGallery\Gallery $gallery
-             */
-            $gallery = $galleryClass->newInstance();
-
-            // $gallery->init()
-            $initInvoked = false;
-            if ($galleryClass->hasMethod('init')) {
-                $initMethod = $galleryClass->getMethod('init');
-
-                $initArgs = [
-                    $config,
-                ];
-
-                $initResult = $initMethod->invokeArgs($gallery,
-                                                      $initArgs);
-                $initInvoked = true;
-
-                if (null !== $initResult) {
-                    if (false === $initResult) {
-                        throw new \Exception('Could not initialize gallery!');
-                    }
-                    else {
-                        exit((int)\trim($initResult));
-                    }
-                }
+            $runArgs = [ $runCtx ];
+            if (!$initInvoked) {
+                $runArgs[] = $config;
             }
 
-            // $gallery->run()
-            if ($galleryClass->hasMethod('run')) {
-                $runMethod = $galleryClass->getMethod('run');
+            $runResult = $galleryClass->getMethod('run')
+                                      ->invokeArgs($gallery,
+                                                   $runArgs);
 
-                $runArgs = [];
-                if (!$initInvoked) {
-                    $runArgs[] = $config;
-                }
-
-                $runResult = $runMethod->invokeArgs($gallery,
-                                                    $runArgs);
-                if (null !== $runResult) {
-                    if (false === $runResult) {
-                        throw new \Exception('Could not run gallery!');
-                    }
-                    else {
-                        exit((int)\trim($runResult));
-                    }
-                }
+            if (false === $runResult) {
+                throw new GalleryException('Could not run gallery!', 1);
             }
-            else {
-                \header(':', true, 501);
+            else if (null !== $runResult) {
+                exit((int)\trim($runResult));  // handle as exit code
             }
         }
         else {
-            if (!$includeFileIncluded) {
-                \header(':', true, 501);
-            }
+            \header(':', true, 501);  // Method not implemented
         }
     }
     else {
-        \header('WWW-Authenticate: Basic realm="SimpleGallery (https://github.com/mkloubert/SimpleGallery)"');
-        \header(':', true, 401);
+        if (!$includeFileUsed) {
+            \header(':', true, 501);  // class not found
+        }
     }
 }
-catch (\Exception $ex) {
-    \header(':', true, 500);
+else {
+    \header('WWW-Authenticate: Basic realm="' . $realm . '"');
+    \header(':', true, 401);
 }
