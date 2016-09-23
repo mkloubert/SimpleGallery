@@ -24,6 +24,10 @@ define('SG_INDEX', 1);
 
 define('SG_DIR_CURRENT', \realpath(__DIR__) . \DIRECTORY_SEPARATOR);
 
+define('SG_METHOD_INIT', 'init');
+define('SG_METHOD_ONERROR', 'onError');
+define('SG_METHOD_RUN', 'run');
+
 /**
  * Gallery app.
  *
@@ -595,8 +599,8 @@ $handleErrorOrException = function($arg) use (&$gallery) {
         $galleryClass = new \ReflectionObject($gallery);
 
         // $gallery->onError()
-        if ($galleryClass->hasMethod('onError')) {
-            $errorHandled = false !== $galleryClass->getMethod('onError')
+        if ($galleryClass->hasMethod(SG_METHOD_ONERROR)) {
+            $errorHandled = false !== $galleryClass->getMethod(SG_METHOD_ONERROR)
                                                    ->invoke($gallery,
                                                             $arg);
         }
@@ -700,7 +704,7 @@ if ($isAuthorized) {
     }
 
     if (empty($galleryClassName)) {
-        $galleryClassName = Gallery::class;
+        $galleryClassName = Gallery::class;  // default class
     }
 
     if (\class_exists($galleryClassName)) {
@@ -710,8 +714,8 @@ if ($isAuthorized) {
 
         // $gallery->init()
         $initInvoked = false;
-        if ($galleryClass->hasMethod('init')) {
-            $initResult = $galleryClass->getMethod('init')
+        if ($galleryClass->hasMethod(SG_METHOD_INIT)) {
+            $initResult = $galleryClass->getMethod(SG_METHOD_INIT)
                                        ->invoke($gallery,
                                                 $config);
             $initInvoked = true;
@@ -725,7 +729,7 @@ if ($isAuthorized) {
         }
 
         // $gallery->run()
-        if ($galleryClass->hasMethod('run')) {
+        if ($galleryClass->hasMethod(SG_METHOD_RUN)) {
             $runCtx = new GalleryExecutionContext();
 
             $runArgs = [ $runCtx ];
@@ -733,7 +737,7 @@ if ($isAuthorized) {
                 $runArgs[] = $config;
             }
 
-            $runResult = $galleryClass->getMethod('run')
+            $runResult = $galleryClass->getMethod(SG_METHOD_RUN)
                                       ->invokeArgs($gallery,
                                                    $runArgs);
 
