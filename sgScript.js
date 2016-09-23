@@ -2,7 +2,7 @@
 /* additional scripts */
 
 jQuery(function() {
-    $SimpleGallery.funcs.invokeAjax('echo', {
+    $SimpleGallery.funcs.ajax('echo', {
         'data': {
             's': 'Marcel Kloubert'
         },

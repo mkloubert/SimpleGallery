@@ -351,7 +351,7 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 
             $SimpleGallery.funcs = {};
 
-            $SimpleGallery.funcs.invokeAjax = function(action, opts) {
+            $SimpleGallery.funcs.ajax = function(action, opts) {
                 if (!opts) {
                     opts = {};
                 }
