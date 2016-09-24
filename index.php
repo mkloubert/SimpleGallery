@@ -45,9 +45,17 @@ class Gallery {
      */
     protected $_config;
     /**
+     * @var string
+     */
+    protected $_defaultMimeType = 'application/octet-stream';
+    /**
      * @var array
      */
     protected $_iptcIndexes;
+    /**
+     * @var array
+     */
+    protected $_mime;
     /**
      * @var \DateTimeInterface
      */
@@ -1248,18 +1256,44 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    height: 64px;
+    height: 96px;
 }
 
 .sg-folder-and-file-list .sg-file-item .sg-thumbnail {
     padding: 1em;
 }
 
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail .sg-btns a {
+    margin: 0px 4px;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail .sg-caption h3 {
+    font-size: 1em;
+}
+
 .sg-folder-and-file-list .sg-file-item .sg-thumbnail img {
     height: 10em;
 }
 
+.sg-folder-and-file-list .sg-folder-item {
+    cursor: pointer;
+}
+
+.sg-folder-and-file-list .sg-folder-item .media-body {
+    vertical-align: middle;
+}
+
+.sg-folder-and-file-list .sg-folder-item .media-object {
+    padding: 0px 8px;
+    width: 64px;
+    vertical-align: top;
+}
+
 #sg-navbar-top .sg-search-form .sg-search-btn {
+    cursor: pointer;
+}
+
+#sg-body .sg-current-directory .sg-non-current {
     cursor: pointer;
 }
                     <?php
@@ -1291,7 +1325,11 @@ body {
 
                 case 'fancybox_buttons.png':
                     echo \base64_decode('iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAvVBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoqKgAAABhYWEAAACKiooAAAAAAADj4+MAAADExMQAAABlZWWAgIAAAAAzMzMAAADg4OArKysAAADk5OR0dHRXV1dgYGCtra3u7u7Hx8eoqKjDw8P4+Pjv7++wsLD4+PjZ2dm/v7/Gxsb39/f5+fn5+fno6Oj6+vrb29vh4eHq6ur7+/vw8PD4+Pj29vb7+/v8/Pz////5+fn09PTy8vLw8PARO2GBAAAANnRSTlMAAQMFBwsOERUXHB8gJiguNzg9Pz8/Q0hLT1VWYGVoeH2IkaKkpKmxsrjExc3T1djc4uPw8vVWxhKTAAAC9ElEQVR4Xu2WXXeaQBCGgQUWiGCsibExiWk+bA0xNlZnP8D8/5/VQUp7FMYc95iLtjw3czHs45zx5bDWv05LS/gc7hewb5/txoOzR7bpP86aDeFMx/ZeNX+WTe7wResJutlE65ew2azPnb3qYK5V3e2iuXAXZnS7TWalb09LbEqttLrabfIpAKAbzQAw5Q3mLNcV38PtFeuKTNTdfi8VQiitFZa059fWheb1ep3nuRCg1NbSudKAp7CHT9TdLOqn2NqcTvsR21nXs1bYRHJEgNxaeiSh8P56gHAXvZoZ8e/w8G/zO2pYnTNrxz1VRU9Na2bL694LkVdyAXC2pc4Bqn1g98dNZ1c90aVaT2pqJ+ihW+TpU8l9ZFt/CB5ef7HKBZoTz941a5FvdkW5AW4G/Q1df2td3WHJ6BUIM4j86SkXQLkhOwv4Bs/Z6vlBSTLP6mbLn2cSRDocpgJkNvetRve7b2PNjPCLBQBmA3MCsLjgVpP7NrL3qx9qZsTtXC7QzBi6F5cdt0Hg8Mjfr/Y7ncJcd/d7RepY1OujuQmbOdZeHJc1/rbLfVZU5nM0/y20tLS0sNmpTXfDGAmrciBc6y8O2Y01ElflQCKp9Qs5eCyVknFZDNSg6MFjmWXoLIqBGoTIycHjDCCLy2KixlsKlIMfXb1GysGPr357Q3e58Q9RA8Cd9yELEfli3D26Ot9cgb8OE370hQgUL8a9yD323ygBRDny0V8ZKUU58vFfdBDUyEiMyxJxWQ5Xz8mRkZMYOanKgfAuOTLiBlEUuFU5EObjyP8jLS0tLexRF7hUl9mnyyvHSO0m00wqGVA35cmnpV56ZlNH11pKGTV3I6W1Wl1zI7X9aSkBSLWUMhsnZlN7y2w1ToFUK6mn3DZS89vVuDeYUuriiw4TZjZ1t5/wKCG2GQxGo9EgcY3Ujsc9m7mM/LAjnOga5JXIOgGRV4OsE9B5pbNOY5JXOus0dF7prNOY5JXOOg2dVzrrNCZ5pbNuTkvLT1EJqK9sfkCLAAAAAElFTkSuQmCC');
-                    break;                    
+                    break;
+
+                case 'folder.png':
+                    echo \base64_decode('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');
+                    break;                       
             }
 
             $content = \ob_get_contents();
@@ -1407,14 +1445,44 @@ body {
      */
     protected function getImageFoldersAndFiles($ctx) {
         $filesAndFolders = [
+            'dir' => $ctx->scopeDirectory,
             'files' => [],
             'folders' => [],
         ];
+        
+        $parentDir = null;
+        if ('/' !== $filesAndFolders['dir'])
+        {
+            $parentDir = '/';
+            $dirParts = \explode('/', $filesAndFolders['dir']);
+            
+            $dirPartCount = \count($dirParts);
+            for ($i = 0; $i < $dirPartCount - 1; $i++) {
+                $dp = $dirParts[$i];
+                if ($i > 0) {
+                    $parentDir .= '/';
+                }
+                
+                $parentDir .= $dp;
+            }
+        }
+
+        $filesAndFolders['parentDir'] = empty($parentDir) ? null : $parentDir;
+        if (!empty($filesAndFolders['parentDir'])) {
+            $filesAndFolders['folders'][] = [
+                'name' => '..',
+                'path' => $filesAndFolders['parentDir'],
+                'search' => ['..'],
+                'title' => '..',
+            ];
+        }
         
         if (\is_dir($ctx->directory)) {
             $dh = @\opendir($ctx->directory);
             if (\is_resource($dh)) {
                 try {
+                    $favorites = $this->getFavorites($ctx);
+                    
                     while (false !== ($item = readdir($dh))) {
                         if ('.' === $item || '..' === $item) {
                             continue;
@@ -1422,6 +1490,8 @@ body {
 
                         $fullPath = \realpath($ctx->directory . $item);
                         if (\is_file($fullPath) && $this->isImageFile($fullPath)) {
+                            // file
+
                             $title = null;
 
                             $exif = $this->getEXIF($fullPath);
@@ -1442,16 +1512,20 @@ body {
                             $filesAndFolders['files'][] = [
                                 'gps' => empty($gps) ? null : $gps,
                                 'iptc' => empty($iptc) ? null : $iptc,
+                                'isFav' => false !== \array_search($fullPath, $favorites),
                                 'name' => $item,
-                                'path' => './' . $item,
+                                'path' => '.' . $filesAndFolders['dir'] . (1 !== \strlen($filesAndFolders['dir']) ? '/' : '') . $item,
                                 'search' => $this->getSearchExpressions($fullPath),
                                 'title' => $title,
                             ];
                         }
-                        else if (\is_dir($fullPath)) {
+                        else if ($ctx->allowFolders &&
+                                 \is_dir($fullPath) && $this->isImageFolder($fullPath)) {
+                            // folder
+
                             $filesAndFolders['folders'][] = [
                                 'name' => $item,
-                                'path' => '/' . $item,
+                                'path' => $filesAndFolders['dir'] . (1 !== \strlen($filesAndFolders['dir']) ? '/' : '') . $item,
                                 'search' => $this->getSearchExpressions($fullPath),
                                 'title' => $item,
                             ];
@@ -1535,6 +1609,44 @@ body {
         }
 
         return $iptc[$index][$subIndex];
+    }
+
+    /**
+     * Returns a MIME type by a file name.
+     * 
+     * @param string $file The file name.
+     * 
+     * @return string|null The MIME type or (null) if $file is no valid name.
+     */
+    protected function getMimeTypeByFilename($file) {
+        $pathInfo = @\pathinfo($file);
+        if (\is_array($pathInfo)) {
+            $ext = null;
+            if (!empty($pathInfo['extension'])) {
+                $ext = \trim(\strtolower($pathInfo['extension']));
+            }
+
+            if (!empty($this->_mime)) {
+                foreach ($this->_mime as $mime => $validExtensions) {
+                    $mime = \trim(\strtolower($mime));
+
+                    // keep sure to have a list of extensions
+                    if (!\is_array($validExtensions) && !($validExtensions instanceof \Traversable)) {
+                        $validExtensions = [ $validExtensions ];
+                    }
+
+                    foreach ($validExtensions as $ve) {
+                        if (\trim(\strtolower($ve)) === $ext) {
+                            return $mime;  // found
+                        }
+                    }
+                }
+            }
+
+            return $this->_defaultMimeType;
+        }
+
+        return null;
     }
 
     /**
@@ -1649,7 +1761,7 @@ body {
 
         $this->_config = $config;
 
-        //TODO: read from config, if available
+        // valid IPTC indexes
         $this->_iptcIndexes = [
             'caption',
             'city',
@@ -1661,9 +1773,9 @@ body {
             'photo_source',
             'photog',
             'source',
-            'state'];
+            'state'];  //TODO: read from config, if available
 
-        //TODO: read from config, if available
+        // actions
         $this->_actions = [
             '' => function($ctx) use ($me) {
                 return $me->showPage($ctx);
@@ -1676,8 +1788,71 @@ body {
             },
             'image' => function($ctx) use ($me) {
                 return $me->outputImageFile($ctx);
+            },
+            'toggle_favorite' => function($ctx) use ($me) {
+                return $me->toggleFavorite($ctx);
             }
-        ];
+        ];  //TODO: read from config, if available
+
+        // MIME types with valid file extensions
+        $this->_mime = [
+            // fonts
+            'application/vnd.ms-fontobject' => 'eot',
+            'application/x-font-opentype' => 'otf',
+            'application/x-font-ttf' => 'ttf',
+            'application/font-woff' => 'woff',
+            'application/font-woff2' => 'woff2',
+
+            // images
+            'image/gif' => 'gif',
+            'image/jpeg' => ['jpg', 'jpeg'],
+            'image/png' => 'png',
+            'image/svg+xml' => 'svg',
+        ];  //TODO: read from config, if available
+    }
+
+    /**
+     * Checks if a directory is a valid image folder.
+     *
+     * @param string $path The path of the directory.
+     *
+     * @return bool Is valid folder or not.
+     */
+    protected function isImageFolder($path) {
+        $path = \realpath($path);
+        if (\is_dir($path)) {
+            $pathInfo = \pathinfo($path);
+            if (\is_array($pathInfo)) {
+                if (!empty($pathInfo['basename'])) {
+                    if ('.' !== \substr(\trim($pathInfo['basename']), 0, 1)) {
+                        // check if at least one image file
+                        // is stored in the folder
+                        $dh = \opendir($path);
+                        if (@\is_resource($dh)) {
+                            try {
+                                while (false !== ($item = \readdir($dh))) {
+                                    if ('.' === $item || '..' === $item) {
+                                        continue;
+                                    }
+
+                                    $fullPath = \realpath($path . \DIRECTORY_SEPARATOR . $item);
+                                    if (\is_file($fullPath)) {
+                                        if ($this->isImageFile($fullPath)) {
+                                            return true;  // yes
+                                        }
+                                    }
+                                }
+                            }
+                            finally {
+                                \closedir($dh);
+                            }    
+                        }                        
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1690,18 +1865,8 @@ body {
     protected function isImageFile($path) {
         $path = \realpath($path);
         if (\is_file($path)) {
-            $pathInfo = @\pathinfo($path);
-            if (\is_array($pathInfo)) {
-                if (!empty($pathInfo['extension'])) {
-                    switch (\trim(\strtolower($pathInfo['extension']))) {
-                        case 'gif':
-                        case 'jpeg':
-                        case 'jpg':
-                        case 'png':
-                            return true;
-                    }
-                }
-            }
+            return 0 === \stripos(\trim($this->getMimeTypeByFilename($path)),
+                                  'image/');
         }
 
         return false;
@@ -1724,6 +1889,34 @@ body {
      * @param GalleryExecutionContext $ctx The execution context.
      */
     protected function outputBody($ctx) {
+        ?>
+        
+        <nav class="navbar navbar-default navbar-fixed-top" id="sg-navbar-top">
+          <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="https://github.com/mkloubert/SimpleGallery" target="_blank">SimpleGallery</a>
+            </div>
+
+            <form class="navbar-form navbar-right sg-search-form" role="search">
+              <div class="form-group">
+                  <div class="input-group">
+                    <input type="text" class="form-control sg-search-field" placeholder="Search...">
+
+                    <div class="input-group-addon sg-search-btn"><i class="fa fa-search" aria-hidden="true"></i></div>
+                  </div>
+              </div>
+            </form>
+          </div>
+        </nav>
+
+        <div class="container" id="sg-body">
+            <a name="sg-folders-and-files-area-link"></a>
+            <div class="row sg-current-directory"></div>
+
+            <div class="row sg-folders-and-files-area"></div>
+        </div>        
+        
+        <?php
     }
 
     /**
@@ -1762,120 +1955,6 @@ body {
 </script>
 <![endif]-->
         <?php
-    }
-
-    /**
-     * Outputs all stuff for using the ImageBox feature.
-     *
-     * @param GalleryExecutionContext $ctx The execution context.
-     */
-    protected function outputImageBox($ctx) {
-        ?>
-
-<!-- jquery.fancybox.css -->
-<style type="text/css">
-
-<?= $this->getFile('jquery.fancybox.css') ?>
-
-</style>
-
-<!-- jquery.fancybox-buttons.css -->
-<style type="text/css">
-
-<?= $this->getFile('jquery.fancybox-buttons.css') ?>
-
-</style>
-
-<!-- jquery.fancybox-thumbs.css -->
-<style type="text/css">
-
-<?= $this->getFile('jquery.fancybox-thumbs.css') ?>
-
-</style>
-
-<!-- jquery.mousewheel.pack.js -->
-<script type="text/javascript">
-
-<?= $this->getFile('jquery.mousewheel.pack.js') ?>
-
-</script>
-
-<!-- jquery.fancybox.pack.js -->
-<script type="text/javascript">
-
-<?= $this->getFile('jquery.fancybox.pack.js') ?>
-
-</script>
-
-<!-- jquery.fancybox-buttons.js -->
-<script type="text/javascript">
-
-<?= $this->getFile('jquery.fancybox-buttons.js') ?>
-
-</script>
-
-<!-- jquery.fancybox-media.js -->
-<script type="text/javascript">
-
-<?= $this->getFile('jquery.fancybox-media.js') ?>
-
-</script>
-
-<!-- jquery.fancybox-thumbs.js -->
-<script type="text/javascript">
-
-<?= $this->getFile('jquery.fancybox-thumbs.js') ?>
-
-</script>
-
-        <?php
-    }
-
-    /**
-     * Outputs an image file.
-     *
-     * @param GalleryExecutionContext $ctx The execution context.
-     */
-    protected function outputImageFile($ctx) {
-        $imgFile = null;
-        if (!empty($_REQUEST['f'])) {
-            $imgFile = (string)$_REQUEST['f'];
-        }
-
-        $imgFile = \trim(\strtolower($imgFile));
-        if (!empty($imgFile)) {
-            $img = $this->getFile($imgFile);
-        }
-
-        if (!empty($img)) {
-            $contentType = 'application/octet-stream';
-
-            $fontFileInfo = \pathinfo($imgFile);
-            switch ($fontFileInfo['extension']) {
-                case 'jpeg':
-                case 'jpg':
-                    $contentType = 'image/jpeg';
-                    break;
-
-                case 'png':
-                    $contentType = 'image/png';
-                    break;
-
-                case 'svg':
-                    $contentType = 'image/svg+xml';
-                    break;
-
-                case 'gif':
-                    $contentType = 'image/gif';
-                    break;
-            }
-
-            \header('Content-type: ' . $contentType);
-            echo $img;
-        }
-        else {
-            \header(':', true, 404);
-        }
     }
 
     /**
@@ -1931,34 +2010,7 @@ body {
         }
 
         if (!empty($font)) {
-            $contentType = 'application/octet-stream';
-
-            $fontFileInfo = \pathinfo($fontFile);
-            switch ($fontFileInfo['extension']) {
-                case 'eot':
-                    $contentType = 'application/vnd.ms-fontobject';
-                    break;
-
-                case 'otf':
-                    $contentType = 'application/x-font-opentype';
-                    break;
-
-                case 'svg':
-                    $contentType = 'image/svg+xml';
-                    break;
-
-                case 'ttf':
-                    $contentType = 'application/x-font-ttf';
-                    break;
-
-                case 'woff':
-                    $contentType = 'application/font-woff';
-                    break;
-
-                case 'woff2':
-                    $contentType = 'application/font-woff2';
-                    break;
-            }
+            $contentType = $this->getMimeTypeByFilename($fontFile);
 
             \header('Content-type: ' . $contentType);
             echo $font;
@@ -2084,7 +2136,7 @@ jQuery(function() {
         // $SimpleGallery.elements.body
         Object.defineProperty($SimpleGallery.elements, 'body', {
             get: function() {
-                return jQuery('sg-body');
+                return jQuery('#sg-body');
             }
         });
 
@@ -2212,7 +2264,7 @@ jQuery(function() {
                 if (!file) {
                     return;
                 }
-
+                
                 var item = jQuery('<div class="col-xs-12 col-sm-6 col-md-4 sg-item sg-file-item">' +
                                   '<div class="thumbnail fancybox sg-thumbnail">' +
                                   '<a class="sg-imagebox" rel="galleryVisible">' +
@@ -2220,10 +2272,80 @@ jQuery(function() {
                                   '</a>' +
                                   '<div class="caption sg-caption">' +
                                   '<h3></h3>' +
+                                  '<p class="sg-btns"></p>' + 
                                   '</div>' +
                                   '</div>' +
                                   '<input type="hidden" class="sg-search-expr" />' +
+                                  '<input type="hidden" class="sg-object" />' +
                                   '</div>');
+                
+                var updateObject = function() {
+                    item.find('.sg-object')
+                        .val(JSON.stringify(file));
+                };
+                
+                var buttons = item.find('.sg-btns');
+                
+                var favBtn = $('<a href="#" class="btn btn-sm" role="button"><i class="fa fa-heart" aria-hidden="true"></i></a>');
+                
+                var updateFavBtnState = function() {
+                    favBtn.removeClass('btn-primary')
+                          .removeClass('btn-success');
+                    
+                    if (file.isFav) {
+                        favBtn.addClass('btn-success');
+                    }
+                    else {
+                        favBtn.addClass('btn-primary');
+                    }
+                    
+                    updateObject();
+                    $SimpleGallery.funcs.searchImages();
+                };
+                
+                var isToggelingFavState = false;
+                favBtn.click(function() {
+                    if (isToggelingFavState) {
+                        return;
+                    }
+                    
+                    isToggelingFavState = true;
+                    
+                    $SimpleGallery.funcs.ajax('toggle_favorite', {
+                        'beforeSend': function() {
+                            favBtn.addClass('disabled');
+                        },
+                        
+                        'data': {
+                            'f': file.path,
+                            'fs': file.isFav ? '1' : '0'
+                        },
+                        
+                        'success': function(ctx) {
+                            if (ctx.data.data) {
+                                file.isFav = ctx.data.data.state ? true : false;
+                            }
+                        },
+                        
+                        'complete': function() {
+                            updateFavBtnState();
+                            
+                            isToggelingFavState = false;
+                            favBtn.removeClass('disabled');
+                        }
+                    });
+                    
+                    file.isFav = !file.isFav;
+                });
+                favBtn.appendTo(buttons);
+                
+                if (file.gps) {
+                    var gpsBtn = $('<a class="btn btn-primary btn-sm" role="button" target="_blank"><i class="fa fa-map-marker" aria-hidden="true"></i></a>');
+                    gpsBtn.attr('href',
+                                'https://maps.google.com?q=' + encodeURIComponent('loc:' + jQuery.trim(file.gps.lat) + ',' + jQuery.trim(file.gps.long)));
+                    
+                    gpsBtn.appendTo(buttons);
+                }
                 
                 if (file.path) {
                     item.find('img')
@@ -2242,7 +2364,7 @@ jQuery(function() {
                     item.find('.caption h3')
                         .text($.trim(file.name));
 
-                    item.find('.caption')
+                    item.find('.caption h3')
                         .attr('title', $.trim(file.name));
 
                     item.find('img')
@@ -2255,6 +2377,8 @@ jQuery(function() {
                     item.find('.sg-search-expr')
                         .val(file.search.join(' '));
                 }
+
+                updateFavBtnState();
 
                 return item;
             };
@@ -2269,51 +2393,127 @@ jQuery(function() {
                 }
 
                 if (folders.length > 0 || files.length > 0) {
-                    var list = jQuery('<div class="panel panel-primary sg-folder-and-file-list">' +
+                    var list = jQuery('<div class="row sg-folder-and-file-list">' +
+                                      '<div class="col sg-folders-col">' +
+                                      '<div class="panel panel-primary">' +
+                                      '<div class="panel-heading">Folders</div>' +
+                                      '<div class="panel-body"><div class="row sg-folder-list"></div></div>' +
+                                      '</div>' +
+                                      '</div>' +
+                                      '<div class="col sg-files-col">' +
+                                      '<div class="panel panel-primary">' +
                                       '<div class="panel-heading">Images</div>' +
-                                      '<div class="panel-body"><div class="row sg-folder-list sg-file-list"></div></div>' +
+                                      '<div class="panel-body"><div class="row sg-file-list"></div></div>' +
+                                      '</div>' +
+                                      '</div>' +
                                       '</div>');
+                    
+                    var foldersCol = list.find('.sg-folders-col');                    
+                    var filesCol = list.find('.sg-files-col');                  
 
                     var folderList = list.find('.sg-folder-list');
+                    var isFolderListVisible = true;
                     if ($SimpleGallery.funcs.createFolderItem) {
-                        for (var i = 0; i < folders.length; i++) {
-                            var f = folders[i];
+                        if (folders.length > 0) {
+                            for (var i = 0; i < folders.length; i++) {
+                                var f = folders[i];
 
-                            var folderItem = $SimpleGallery.funcs.createFolderItem(f);
-                            if (folderItem) {
-                                folderItem.appendTo(folderList);
+                                var folderItem = $SimpleGallery.funcs.createFolderItem(f);
+                                if (folderItem) {
+                                    folderItem.appendTo(folderList);
+                                }
                             }
+                        }
+                        else {
+                            isFolderListVisible = false;
+                            
+                            foldersCol.remove();
                         }
                     }
 
                     var fileList = list.find('.sg-file-list');
+                    var isFileListVisible = true;
                     if ($SimpleGallery.funcs.createFileItem) {
-                        for (var i = 0; i < files.length; i++) {
-                            var f = files[i];
+                        if (files.length > 0) {
+                            for (var i = 0; i < files.length; i++) {
+                                var f = files[i];
 
-                            var fileItem = $SimpleGallery.funcs.createFileItem(f);
-                            if (fileItem) {
-                                fileItem.appendTo(fileList);
+                                var fileItem = $SimpleGallery.funcs.createFileItem(f);
+                                if (fileItem) {
+                                    fileItem.appendTo(fileList);
+                                }
                             }
+                        }
+                        else {
+                            isFileListVisible = false;
+                            
+                            filesCol.remove();
+                        }
+                    }
+
+                    if (isFolderListVisible) {
+                        if (isFileListVisible) {
+                            foldersCol.addClass('col-md-4');
+                        }
+                        else {
+                            foldersCol.addClass('col-xs-12');
+                        }
+                    }
+                    
+                    if (isFileListVisible) {
+                        if (isFolderListVisible) {
+                            filesCol.addClass('col-md-8');
+                        }
+                        else {
+                            filesCol.addClass('col-xs-12');
                         }
                     }
 
                     return list;
                 }
                 else {
-                    //TODO
+                    var noItemsMsg = jQuery('<p>No items found.</p>');
+
+                    return noItemsMsg;
                 }
             };
 
             $SimpleGallery.funcs.createFolderItem = function(folder) {
-                //TODO
-                return;
-
                 if (!folder) {
                     return;
                 }
 
-                var item = jQuery('');
+                var item = jQuery('<div class="media sg-item sg-folder-item">' +
+                                  '<div class="media-left">' +
+                                  '<img class="media-object" />' +
+                                  '</div>' +
+                                  '<div class="media-body">' +
+                                  '<h4 class="media-heading"></h4>' +
+                                  '</div>' +
+                                  '</div>');
+
+                if (folder.title) {
+                    item.find('.media-heading')
+                        .text(jQuery.trim(folder.title));
+                }
+
+                var icon = folder.icon;
+                if (!icon) {
+                    icon = $SimpleGallery.vars.folderIcon;
+                }
+
+                if (icon) {
+                    item.find('.media-object')
+                        .attr('src', icon);
+                }
+
+                item.click(function() {
+                    if (!folder.path) {
+                        return;
+                    }
+
+                    $SimpleGallery.funcs.reloadImages(folder.path);
+                });
 
                 return item;
             };
@@ -2348,12 +2548,16 @@ jQuery(function() {
                 }
             };
 
-            $SimpleGallery.funcs.reloadImages = function() {
+            $SimpleGallery.funcs.reloadImages = function(path) {
+                if (arguments.length < 1) {
+                    path = $SimpleGallery.vars.curDir;
+                }
+
                 if ($SimpleGallery.vars.isLoadingImages) {
                     return;
                 }
                 
-                var pageBody = jQuery('#sg-body');
+                var pageBody = jQuery('#sg-body .sg-folders-and-files-area');
 
                 if ($SimpleGallery.funcs.ajax) {
                     $SimpleGallery.vars.isLoadingImages = true;
@@ -2363,11 +2567,21 @@ jQuery(function() {
                             
                         },
 
+                        'data': {
+                            'dir': path
+                        },
+
                         'success': function(ctx) {
                             pageBody.html('');
 
                             switch (ctx.data.code) {
                                 case 0:
+                                    if (ctx.data.data.dir) {
+                                        $SimpleGallery.vars.curDir = ctx.data.data.dir;
+                                    }
+                                    
+                                    $SimpleGallery.funcs.updateCurrentDirectoryView();
+
                                     if ($SimpleGallery.funcs.createFileAndFolderList) {
                                         var list = $SimpleGallery.funcs.createFileAndFolderList(ctx.data.data.folders, ctx.data.data.files);
                                         if (list) {
@@ -2413,20 +2627,48 @@ jQuery(function() {
                 var exprParts = expr.split(" ");
 
                 var fileAndFolderList = jQuery('.sg-folder-and-file-list');
-                fileAndFolderList.find('.sg-item').each(function() {
+                fileAndFolderList.find('.sg-file-item').each(function() {
                     var item = $(this);
 
                     var isVisible = true;
                     if ('' !== expr) {
-                        var inputField = item.find('.sg-search-expr');
+                        var searchExprField = item.find('.sg-search-expr');
+                        var objectField = item.find('.sg-object');
+                        
+                        var file;
+                        try {
+                            var fileJson = jQuery.trim(objectField.val());
 
-                        var itemExpr = jQuery.trim(inputField.val()).toLowerCase();
-                        for (var i = 0; i < exprParts.length; i++) {
-                            var p = jQuery.trim(exprParts[i]);
-                            if ('' !== p) {
-                                if (itemExpr.indexOf(p) < 0) {
-                                    isVisible = false;
-                                    break;
+                            file = JSON.parse(fileJson);
+                            if (file) {
+                                isVisible = file.isFav ? true : false;
+                            }
+                        }
+                        catch (e) {
+                            //TODO: log
+                        }
+                        
+                        if (':fav' === expr) {
+                            isVisible = false;                            
+                            if (file) {
+                                isVisible = file.isFav ? true : false;
+                            }
+                        }
+                        else if (':gps' === expr) {
+                            isVisible = false;                            
+                            if (file) {
+                                isVisible = file.gps ? true : false;
+                            }
+                        }
+                        else {
+                            var itemExpr = jQuery.trim(searchExprField.val()).toLowerCase();
+                            for (var i = 0; i < exprParts.length; i++) {
+                                var p = jQuery.trim(exprParts[i]);
+                                if ('' !== p) {
+                                    if (itemExpr.indexOf(p) < 0) {
+                                        isVisible = false;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -2456,37 +2698,182 @@ jQuery(function() {
                     'closeEffect': 'none'
                 });
             };
+            
+            $SimpleGallery.funcs.updateCurrentDirectoryView = function(dir) {
+                if (arguments.length < 1) {
+                    dir = $SimpleGallery.vars.curDir;
+                }
+                
+                if (!dir) {
+                    dir = '';
+                }
+                
+                dir = jQuery.trim(dir);
+                if ('' === dir) {
+                    dir = '/';
+                }
+                
+                var parts = dir.split("/").map(function(x) {
+                    return jQuery.trim(x);
+                }).filter(function(x) {
+                    return '' !== x;
+                }).map(function(x) {
+                    var e = jQuery('<span></span>');
+                    e.text(x);
+                    
+                    return {
+                        'html': e.html(),                  
+                        'value': x
+                    };
+                });
+                
+                parts.splice(0, 0, {
+                    'html': '<i class="fa fa-home" aria-hidden="true"></i>'
+                });
+                
+                var dirArea = $SimpleGallery.elements.body.find('.sg-current-directory');
+                dirArea.html('');
+                
+                var createCrumbItemClickAction = function(path) {
+                    return function() {
+                        $SimpleGallery.funcs.reloadImages(path);
+                    };
+                };
+                
+                var crumb = jQuery('<ol class="breadcrumb"></ol>');
+                var curDir = '/';
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i];
+                    if (i > 0) {
+                        curDir += p.value + '/';
+                    }
+
+                    var crumbItem = jQuery('<li><a href="#sg-folders-and-files-area-link"></a></li>');
+                    crumbItem.html(p.html);
+                    
+                    var crumbLink = crumbItem.find('a');
+                    if (i < (parts.length - 1)) {
+                        crumbItem.click(createCrumbItemClickAction(curDir));
+                        crumbItem.addClass('sg-non-current');
+                    }
+                    else {
+                        crumbLink.addClass('active');
+                        crumbItem.addClass('sg-current');
+                    }
+                    
+                    crumbItem.appendTo(crumb);
+                }
+                
+                crumb.appendTo(dirArea);
+            };
 
             $SimpleGallery.vars = {};
 
+            $SimpleGallery.vars.curDir = <?= \json_encode($ctx->scopeDirectory) ?>;
+            $SimpleGallery.vars.folderIcon = 'data:image/png;base64,' + <?= \json_encode(\base64_encode($this->getFile('folder.png'))) ?>;
+            $SimpleGallery.vars.lastSearchExpr = '';
             $SimpleGallery.vars.isLoadingImages = false;
             $SimpleGallery.vars.isSearchingImages = false;
-            $SimpleGallery.vars.lastSearchExpr = '';
         </script>
     </head>
 
     <body>
-        <nav class="navbar navbar-default navbar-fixed-top" id="sg-navbar-top">
-          <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="https://github.com/mkloubert/SimpleGallery" target="_blank">SimpleGallery</a>
-            </div>
-
-            <form class="navbar-form navbar-right sg-search-form" role="search">
-              <div class="form-group">
-                  <div class="input-group">
-                    <input type="text" class="form-control sg-search-field" placeholder="Search...">
-
-                    <div class="input-group-addon sg-search-btn"><i class="fa fa-search" aria-hidden="true"></i></div>
-                  </div>
-              </div>
-            </form>
-          </div>
-        </nav>
-
-        <div class="container" id="sg-body"></div>
 
         <?php
+    }
+
+    /**
+     * Outputs all stuff for using the ImageBox feature.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputImageBox($ctx) {
+        ?>
+
+        <!-- jquery.fancybox.css -->
+        <style type="text/css">
+
+            <?= $this->getFile('jquery.fancybox.css') ?>
+
+        </style>
+
+        <!-- jquery.fancybox-buttons.css -->
+        <style type="text/css">
+
+            <?= $this->getFile('jquery.fancybox-buttons.css') ?>
+
+        </style>
+
+        <!-- jquery.fancybox-thumbs.css -->
+        <style type="text/css">
+
+            <?= $this->getFile('jquery.fancybox-thumbs.css') ?>
+
+        </style>
+
+        <!-- jquery.mousewheel.pack.js -->
+        <script type="text/javascript">
+
+            <?= $this->getFile('jquery.mousewheel.pack.js') ?>
+
+        </script>
+
+        <!-- jquery.fancybox.pack.js -->
+        <script type="text/javascript">
+
+            <?= $this->getFile('jquery.fancybox.pack.js') ?>
+
+        </script>
+
+        <!-- jquery.fancybox-buttons.js -->
+        <script type="text/javascript">
+
+            <?= $this->getFile('jquery.fancybox-buttons.js') ?>
+
+        </script>
+
+        <!-- jquery.fancybox-media.js -->
+        <script type="text/javascript">
+
+            <?= $this->getFile('jquery.fancybox-media.js') ?>
+
+        </script>
+
+        <!-- jquery.fancybox-thumbs.js -->
+        <script type="text/javascript">
+
+            <?= $this->getFile('jquery.fancybox-thumbs.js') ?>
+
+        </script>
+
+        <?php
+    }
+
+    /**
+     * Outputs an image file.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputImageFile($ctx) {
+        $imgFile = null;
+        if (!empty($_REQUEST['f'])) {
+            $imgFile = (string)$_REQUEST['f'];
+        }
+
+        $imgFile = \trim(\strtolower($imgFile));
+        if (!empty($imgFile)) {
+            $img = $this->getFile($imgFile);
+        }
+
+        if (!empty($img)) {
+            $contentType = $this->getMimeTypeByFilename($imgFile);
+
+            \header('Content-type: ' . $contentType);
+            echo $img;
+        }
+        else {
+            \header(':', true, 404);
+        }
     }
 
     /**
@@ -2562,6 +2949,117 @@ jQuery(function() {
         $this->outputFooter($ctx);
     }
 
+    protected function getScriptDirectory($ctx) {
+        $directory = \realpath(@\getcwd());
+        if (!\is_dir($directory)) {
+            $directory = \realpath(SG_DIR_CURRENT);
+        }
+        
+        return $directory;
+    }
+    
+    protected function isInScriptDirectory($ctx, $path) {
+        $path = \realpath($path);
+        if (false !== $path) {
+            $directory = $this->getScriptDirectory($ctx);
+            
+            return 0 === \strpos($path, $directory . \DIRECTORY_SEPARATOR);
+        }
+        
+        return false;
+    }
+    
+    protected function getFavorites($ctx) {
+        $me = $this;
+        
+        if (!empty($_SESSION['SG_FAVORITES'])) {
+            $favorites = $_SESSION['SG_FAVORITES'];
+        }
+        
+        if (empty($favorites)) {
+            $favorites = [];
+        }
+        
+        if (!\is_array($favorites)) {
+            $favorites = [];
+        }
+        
+        // normalize
+        $favorites = \array_map(function($x) {
+            return \trim($x);
+        }, $favorites);
+        // cleanup
+        $favorites = \array_filter($favorites, function($x) use ($ctx, $me) {
+            return !empty($x) &&
+                   $me->isInScriptDirectory($ctx, $x);
+        });
+        $favorites = \array_unique($favorites);
+        
+        return $favorites;
+    }
+    
+    protected function updateFavorites($ctx, $favorites) {
+        if (empty($favorites)) {
+            $favorites = [];
+        }
+        
+        if (!\is_array($favorites)) {
+            $favorites = [];
+        }
+        
+        $_SESSION['SG_FAVORITES'] = $favorites;
+    }
+    
+    protected function toggleFavorite($ctx) {
+        $code = 1;
+
+        $isFav = false;
+        if (\array_key_exists('fs', $_POST)) {
+            $isFav = !('1' === \trim($_POST['fs']));
+        }
+
+        if (!empty($_POST['f'])) {
+            $directory = $this->getScriptDirectory($ctx);
+            
+            $filePath = \realpath($directory . \DIRECTORY_SEPARATOR . \trim($_POST['f']));
+            if (\is_file($filePath)) {
+                if ($this->isInScriptDirectory($ctx, $filePath)) {
+                    if ($this->isImageFile($filePath)) {
+                        $code = 0;
+                        
+                        $favorites = $this->getFavorites($ctx);
+
+                        $key = \array_search($filePath, $favorites, true);
+
+                        if ($isFav) {
+                            if (false === $key) {
+                                $favorites[] = $filePath;
+                            }
+                            else {
+                                $favorites[$key] = $filePath;
+                            }
+                        }
+                        else {
+                            if (false !== $key) {
+                                unset($favorites[$key]);
+                            }
+                        }
+
+                        $this->updateFavorites($ctx, $favorites);
+                    }
+                }
+            }
+        }
+
+        \header('Content-type: application/json; charset=' . $this->getOutputEncoding());
+        echo \json_encode($this->toOutputEncoding([
+            'code' => $code,
+            'data' => [
+                'state' => $isFav,
+            ],
+        ]));
+    }
+
     /**
      * Converts the data of an input value
      * so that it can be used for output.
@@ -2571,7 +3069,9 @@ jQuery(function() {
      * @return mixed The output value.
      */
     protected function toOutputEncoding($val) {
-        if (\is_array($val) || ($val instanceof \ArrayAccess)) {
+        if (\is_array($val) ||
+            (($val instanceof \ArrayAccess) && ($val instanceof \Traversable))) {
+
             foreach ($val as $k => $v) {
                 $val[$k] = $this->toOutputEncoding($v);
             }
@@ -2638,11 +3138,23 @@ class GalleryException extends \Exception {
  */
 class GalleryExecutionContext {
     /**
+     * Allow folders or not.
+     *
+     * @var bool
+     */
+    public $allowFolders;
+    /**
      * The full path of the current directory.
-     * 
+     *
      * @var string
      */
     public $directory;
+    /**
+     * The current directory.
+     *
+     * @var string
+     */
+    public $scopeDirectory;
 }
 
 $gallery = null;
@@ -2733,6 +3245,74 @@ if (!empty($config['realm'])) {
 }
 
 if ($isAuthorized) {
+    $directory = \realpath(@\getcwd());
+    if (!\is_dir($directory)) {
+        $directory = \realpath(SG_DIR_CURRENT);
+    }
+
+    if (!\is_dir($directory)) {
+        exit(1);
+    }
+    
+    if (empty($sessionName)) {
+        $sessionName = 'SG2_SESSION';
+    }
+    
+    @\session_name($sessionName);
+    @\session_start();
+
+    $allowFolders = true;
+    if (\array_key_exists('features', $config)) {
+        if (\array_key_exists('allowFolders', $config['features'])) {
+            if (null !== $config['features']['allowFolders']) {
+                $allowFolders = !empty($config['features']['allowFolders']) ? true : false;
+            }
+        }
+    }
+
+    $directory .= \DIRECTORY_SEPARATOR;
+    if ($allowFolders && !empty($_REQUEST['dir'])) {
+        $scopeDir = \trim($_REQUEST['dir']);
+        $scopeDir = \str_ireplace(\DIRECTORY_SEPARATOR, '/', $scopeDir);
+
+        // remove unwanted strings
+        do {
+            $foundExpr = false;
+            foreach (['./', '../', '/..', '/..'] as $expr) {
+                if (false !== \stripos($scopeDir, $expr)) {
+                    $foundExpr = true;
+                    $scopeDir = \trim(\str_ireplace($expr, '', $scopeDir));
+                }
+            }
+        }
+        while ($foundExpr);
+
+        $parts = [];
+        foreach (\explode('/', $scopeDir) as $p) {
+            $p = \trim($p);
+            if (!empty($p)) {
+                if ('.' === $p[0]) {
+                    break;
+                }
+
+                $parts[] = $p;
+            }
+        }
+        $scopeDir = \implode('/', $parts);
+
+        $scopeDir = \trim($scopeDir, '/');
+        if (!empty($scopeDir)) {
+            if (\is_dir($directory . $scopeDir)) {
+                $directory = \realpath($directory . $scopeDir) . \DIRECTORY_SEPARATOR;
+                $scopeDirectory = '/' . $scopeDir;
+            }
+        }
+    }
+
+    if (empty($scopeDirectory)) {
+        $scopeDirectory = '/';
+    }
+
     if (!empty($config['files'])) {
         if (!empty($config['files']['include'])) {
             // custom include file
@@ -2797,9 +3377,14 @@ if ($isAuthorized) {
             $runCtx = new $runCtxClassName();
             $runCtxClass = new \ReflectionObject($runCtx);
 
+            if ($runCtxClass->hasProperty('allowFolders')) {
+                $runCtx->allowFolders = $allowFolders;
+            }
             if ($runCtxClass->hasProperty('directory')) {
-                //TODO
-                $runCtx->directory = \realpath(__DIR__) . \DIRECTORY_SEPARATOR;
+                $runCtx->directory = $directory;
+            }
+            if ($runCtxClass->hasProperty('scopeDirectory')) {
+                $runCtx->scopeDirectory = $scopeDirectory;
             }
 
             $runArgs = [ $runCtx ];

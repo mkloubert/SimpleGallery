@@ -11,6 +11,10 @@ return [
         'class' => "\\MyExecutionContext",
     ],
 
+    'features' => [
+        'allowFolders' => true,
+    ],
+
     'users' => [
         ['name' => 'user1',
          'password' => 'pwd1'],
