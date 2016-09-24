@@ -2294,7 +2294,7 @@ jQuery(function() {
 
                 list.find('.sg-imagebox').fancybox({
                     'openEffect': 'none',
-                    'closeEffect': 'none',
+                    'closeEffect': 'none'
                 });
             };
 
