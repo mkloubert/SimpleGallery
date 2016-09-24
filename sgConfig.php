@@ -1,7 +1,15 @@
 <?php
 
+/* config */
+
+defined("SG_INDEX") or die();
+
 return [
     'class' => "\\MyGallery",
+
+    'context' => [
+        'class' => "\\MyExecutionContext",
+    ],
 
     'users' => [
         ['name' => 'user1',

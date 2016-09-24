@@ -2791,7 +2791,7 @@ if ($isAuthorized) {
             }
 
             if (empty($runCtxClassName)) {
-                $runCtxClassName = GalleryExecutionContext::class;
+                $runCtxClassName = GalleryExecutionContext::class;  // default class
             }
 
             $runCtx = new $runCtxClassName();
