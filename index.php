@@ -20,13 +20,13 @@
 
 namespace MarcelJoachimKloubert\SimpleGallery;
 
-define('SG_INDEX', 1);
+\define('SG_INDEX', 1);
 
-define('SG_DIR_CURRENT', \realpath(__DIR__) . \DIRECTORY_SEPARATOR);
+\define('SG_DIR_CURRENT', \realpath(__DIR__) . \DIRECTORY_SEPARATOR);
 
-define('SG_METHOD_INIT', 'init');
-define('SG_METHOD_ONERROR', 'onError');
-define('SG_METHOD_RUN', 'run');
+\define('SG_METHOD_INIT', 'init');
+\define('SG_METHOD_ONERROR', 'onError');
+\define('SG_METHOD_RUN', 'run');
 
 /**
  * Gallery app.
@@ -36,6 +36,10 @@ define('SG_METHOD_RUN', 'run');
  * @package MarcelJoachimKloubert\SimpleGallery
  */
 class Gallery {
+    /**
+     * @var array
+     */
+    protected $_actions;
     /**
      * @var array
      */
@@ -1639,6 +1643,8 @@ body {
      * @throws \Exception Something went wrong.
      */
     public function init($config) {
+        $me = $this;
+
         $this->_now = new \DateTime();
 
         $this->_config = $config;
@@ -1656,6 +1662,22 @@ body {
             'photog',
             'source',
             'state'];
+
+        //TODO: read from config, if available
+        $this->_actions = [
+            '' => function($ctx) use ($me) {
+                return $me->showPage($ctx);
+            },
+            'font' => function($ctx) use ($me) {
+                return $me->outputFontFile($ctx);
+            },
+            'get_image_files_and_folders' => function($ctx) use ($me) {
+                return $me->outputFoldersAndFiles($ctx);
+            },
+            'image' => function($ctx) use ($me) {
+                return $me->outputImageFile($ctx);
+            }
+        ];
     }
 
     /**
@@ -1697,9 +1719,19 @@ body {
     }
 
     /**
-     * Outputs all Bootstrap specific stuff.
+     * Outputs the BODY.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputBootstrap() {
+    protected function outputBody($ctx) {
+    }
+
+    /**
+     * Outputs all Bootstrap specific stuff.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputBootstrap($ctx) {
         ?>
 
 <!-- bootstrap.min.css -->
@@ -1734,8 +1766,10 @@ body {
 
     /**
      * Outputs all stuff for using the ImageBox feature.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputImageBox() {
+    protected function outputImageBox($ctx) {
         ?>
 
 <!-- jquery.fancybox.css -->
@@ -1798,9 +1832,76 @@ body {
     }
 
     /**
-     * Outputs all FontAwesome specific stuff.
+     * Outputs an image file.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputFontAwesome() {
+    protected function outputImageFile($ctx) {
+        $imgFile = null;
+        if (!empty($_REQUEST['f'])) {
+            $imgFile = (string)$_REQUEST['f'];
+        }
+
+        $imgFile = \trim(\strtolower($imgFile));
+        if (!empty($imgFile)) {
+            $img = $this->getFile($imgFile);
+        }
+
+        if (!empty($img)) {
+            $contentType = 'application/octet-stream';
+
+            $fontFileInfo = \pathinfo($imgFile);
+            switch ($fontFileInfo['extension']) {
+                case 'jpeg':
+                case 'jpg':
+                    $contentType = 'image/jpeg';
+                    break;
+
+                case 'png':
+                    $contentType = 'image/png';
+                    break;
+
+                case 'svg':
+                    $contentType = 'image/svg+xml';
+                    break;
+
+                case 'gif':
+                    $contentType = 'image/gif';
+                    break;
+            }
+
+            \header('Content-type: ' . $contentType);
+            echo $img;
+        }
+        else {
+            \header(':', true, 404);
+        }
+    }
+
+    /**
+     * Outputs the list of files and folders.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputFoldersAndFiles($ctx) {
+        \header('Content-type: application/json; charset=' . $this->getOutputEncoding());
+        $foldersAndFiles = $this->getImageFoldersAndFiles($ctx);
+        if (empty($foldersAndFiles)) {
+            $foldersAndFiles = [];
+        }
+
+        echo \json_encode($this->toOutputEncoding([
+            'code' => 0,
+            'data' => $foldersAndFiles,
+        ]));
+    }
+
+    /**
+     * Outputs all FontAwesome specific stuff.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputFontAwesome($ctx) {
         ?>
 
 <!-- font-awesome.min.css -->
@@ -1814,9 +1915,65 @@ body {
     }
 
     /**
-     * Outputs the page FOOTER.
+     * Outputs a font file.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputFooter() {
+    protected function outputFontFile($ctx) {
+        $fontFile = null;
+        if (!empty($_REQUEST['f'])) {
+            $fontFile = (string)$_REQUEST['f'];
+        }
+
+        $fontFile = \trim(\strtolower($fontFile));
+        if (!empty($fontFile)) {
+            $font = $this->getFile($fontFile);
+        }
+
+        if (!empty($font)) {
+            $contentType = 'application/octet-stream';
+
+            $fontFileInfo = \pathinfo($fontFile);
+            switch ($fontFileInfo['extension']) {
+                case 'eot':
+                    $contentType = 'application/vnd.ms-fontobject';
+                    break;
+
+                case 'otf':
+                    $contentType = 'application/x-font-opentype';
+                    break;
+
+                case 'svg':
+                    $contentType = 'image/svg+xml';
+                    break;
+
+                case 'ttf':
+                    $contentType = 'application/x-font-ttf';
+                    break;
+
+                case 'woff':
+                    $contentType = 'application/font-woff';
+                    break;
+
+                case 'woff2':
+                    $contentType = 'application/font-woff2';
+                    break;
+            }
+
+            \header('Content-type: ' . $contentType);
+            echo $font;
+        }
+        else {
+            \header(':', true, 404);
+        }
+    }
+
+    /**
+     * Outputs the page FOOTER.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
+     */
+    protected function outputFooter($ctx) {
         $jsFile = '';
         $styleFile = '';
         if (!empty($this->_config['files'])) {
@@ -1904,19 +2061,21 @@ body {
 
     /**
      * Outputs the page HEADER.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputHeader() {
+    protected function outputHeader($ctx) {
         ?><html>
     <head>
-        <?php $this->outputJQuery(); ?>
+        <?php $this->outputJQuery($ctx); ?>
 
-        <?php $this->outputBootstrap(); ?>
+        <?php $this->outputBootstrap($ctx); ?>
 
-        <?php $this->outputFontAwesome(); ?>
+        <?php $this->outputFontAwesome($ctx); ?>
 
-        <?php $this->outputImageBox(); ?>
+        <?php $this->outputImageBox($ctx); ?>
 
-        <?php $this->outputStyle(); ?>
+        <?php $this->outputStyle($ctx); ?>
 
         <script type="text/javascript">
 
@@ -2275,12 +2434,12 @@ jQuery(function() {
 
                     var imgBox = item.find('.sg-imagebox');
                     if (isVisible) {
-                        imgBox.attr('rel', 'galleryVisible');
+                        imgBox.attr('rel', 'sgGalleryVisible');
                         item.show();
                     }
                     else {
                         item.hide();
-                        imgBox.attr('rel', 'galleryHidden');
+                        imgBox.attr('rel', 'sgGalleryHidden');
                     }
                 });
 
@@ -2332,8 +2491,10 @@ jQuery(function() {
 
     /**
      * Outputs all jQuery specific stuff.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputJQuery() {
+    protected function outputJQuery($ctx) {
         ?>
 
 <!-- jquery.min.js -->
@@ -2348,8 +2509,10 @@ jQuery(function() {
 
     /**
      * Outputs the default page style.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function outputStyle() {
+    protected function outputStyle($ctx) {
         ?>
 
 <!-- sg-style.css -->
@@ -2373,143 +2536,30 @@ jQuery(function() {
      * @throws \Exception Something went wrong.
      */
     public function run($ctx) {
-        $action = null;
+        $action = '';
         if (!empty($_REQUEST['action'])) {
             $action = \trim(\strtolower($_REQUEST['action']));
         }
 
-        switch ($action) {
-            case 'echo':
-                \header('Content-type: application/json');
-                if (!empty($_POST['s'])) {
-                    echo \json_encode($_POST['s']);
-                }
-                break;
-
-            case 'font':
-                // output font
-
-                $fontFile = null;
-                if (!empty($_REQUEST['f'])) {
-                    $fontFile = (string)$_REQUEST['f'];
-                }
-
-                $fontFile = \trim(\strtolower($fontFile));
-                if (!empty($fontFile)) {
-                    $font = $this->getFile($fontFile);
-                }
-
-                if (!empty($font)) {
-                    $contentType = 'application/octet-stream';
-
-                    $fontFileInfo = \pathinfo($fontFile);
-                    switch ($fontFileInfo['extension']) {
-                        case 'eot':
-                            $contentType = 'application/vnd.ms-fontobject';
-                            break;
-
-                        case 'otf':
-                            $contentType = 'application/x-font-opentype';
-                            break;
-
-                        case 'svg':
-                            $contentType = 'image/svg+xml';
-                            break;
-
-                        case 'ttf':
-                            $contentType = 'application/x-font-ttf';
-                            break;
-
-                        case 'woff':
-                            $contentType = 'application/font-woff';
-                            break;
-
-                        case 'woff2':
-                            $contentType = 'application/font-woff2';
-                            break;
-                    }
-
-                    \header('Content-type: ' . $contentType);
-                    echo $font;
-                }
-                else {
-                    \header(':', true, 404);
-                }
-                break;
-            
-            case 'get_image_files_and_folders':
-                \header('Content-type: application/json; charset=' . $this->getOutputEncoding());
-                $foldersAndFiles = $this->getImageFoldersAndFiles($ctx);
-                if (empty($foldersAndFiles)) {
-                    $foldersAndFiles = [];
-                }
-
-                $arr = $this->toOutputEncoding([
-                    'code' => 0,
-                    'data' => $foldersAndFiles,
-                ]);
-
-                echo \json_encode($arr);
-                break;
-
-            case 'image':
-                // output image
-
-                $imgFile = null;
-                if (!empty($_REQUEST['f'])) {
-                    $imgFile = (string)$_REQUEST['f'];
-                }
-
-                $imgFile = \trim(\strtolower($imgFile));
-                if (!empty($imgFile)) {
-                    $img = $this->getFile($imgFile);
-                }
-
-                if (!empty($img)) {
-                    $contentType = 'application/octet-stream';
-
-                    $fontFileInfo = \pathinfo($imgFile);
-                    switch ($fontFileInfo['extension']) {
-                        case 'jpeg':
-                        case 'jpg':
-                            $contentType = 'image/jpeg';
-                            break;
-
-                        case 'png':
-                            $contentType = 'image/png';
-                            break;
-
-                        case 'svg':
-                            $contentType = 'image/svg+xml';
-                            break;
-
-                        case 'gif':
-                            $contentType = 'image/gif';
-                            break;
-                    }
-
-                    \header('Content-type: ' . $contentType);
-                    echo $img;
-                }
-                else {
-                    \header(':', true, 404);
-                }
-                break;
-
-            default:
-                return $this->showPage();
+        if (!empty($this->_actions[$action])) {
+            return \call_user_func($this->_actions[$action],
+                                   $ctx);
         }
+
+        \header(':', true, 404);
     }
 
     /**
      * Shows the gallery page.
+     *
+     * @param GalleryExecutionContext $ctx The execution context.
      */
-    protected function showPage() {
+    protected function showPage($ctx) {
         \header('Content-type: text/html');
 
-        $this->outputHeader();
-
-        $this->outputFooter();
+        $this->outputHeader($ctx);
+        $this->outputBody($ctx);
+        $this->outputFooter($ctx);
     }
 
     /**
@@ -2713,9 +2763,8 @@ if ($isAuthorized) {
     }
 
     if (\class_exists($galleryClassName)) {
-        $galleryClass = new \ReflectionClass($galleryClassName);
-
         $gallery = new $galleryClassName();
+        $galleryClass = new \ReflectionObject($gallery);
 
         // $gallery->init()
         $initInvoked = false;
@@ -2735,8 +2784,23 @@ if ($isAuthorized) {
 
         // $gallery->run()
         if ($galleryClass->hasMethod(SG_METHOD_RUN)) {
-            $runCtx = new GalleryExecutionContext();
-            $runCtx->directory = \realpath(__DIR__) . \DIRECTORY_SEPARATOR;  //TODO
+            if (!empty($config['context'])) {
+                if (!empty($config['context']['class'])) {
+                    $runCtxClassName = \trim($config['context']['class']);
+                }
+            }
+
+            if (empty($runCtxClassName)) {
+                $runCtxClassName = GalleryExecutionContext::class;
+            }
+
+            $runCtx = new $runCtxClassName();
+            $runCtxClass = new \ReflectionObject($runCtx);
+
+            if ($runCtxClass->hasProperty('directory')) {
+                //TODO
+                $runCtx->directory = \realpath(__DIR__) . \DIRECTORY_SEPARATOR;
+            }
 
             $runArgs = [ $runCtx ];
             if (!$initInvoked) {
