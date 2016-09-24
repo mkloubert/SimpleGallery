@@ -50,6 +50,30 @@ class Gallery {
     protected $_now;
 
     /**
+     * Tries to return EXIF data from a file.
+     *
+     * @param string $path The path to the file.
+     *
+     * @return array The EXIF data.
+     */
+    protected function getEXIF($path) {
+        $result = null;
+
+        if (\function_exists("\\exif_read_data")) {
+            $path = \realpath($path);
+            if (\is_file($path)) {
+                $result = @\exif_read_data($path);
+            }
+        }
+
+        if (!\is_array($result)) {
+            $result = [];
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns the content of an embedded file.
      *
      * @param string $fileName The name of the file.
@@ -1217,6 +1241,10 @@ body {
 
 .sg-folder-and-file-list .sg-file-item .sg-caption {
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 64px;
 }
 
 .sg-folder-and-file-list .sg-file-item .sg-thumbnail {
@@ -1275,6 +1303,98 @@ body {
     }
 
     /**
+     * Tries to extract GPS coordinates from EXIF data.
+     *
+     * @param array $exifCoord The EXIF data.
+     *
+     * @return array|null The coordinates or (null) if not available.
+     */
+    protected function getGpsDataFromExifCoordinates($exifCoord) {
+        if (!\is_array($exifCoord)) {
+            return null;
+        }
+
+        $degrees = count($exifCoord) > 0 ? $this->gps2Num($exifCoord[0]) : 0;
+        $minutes = count($exifCoord) > 1 ? $this->gps2Num($exifCoord[1]) : 0;
+        $seconds = count($exifCoord) > 2 ? $this->gps2Num($exifCoord[2]) : 0;
+
+        // normalize
+        $minutes += ($degrees - floor($degrees)) * 60;
+        $degrees  = floor($degrees);
+
+        $seconds += ($minutes - floor($minutes)) * 60;
+        $minutes  = floor($minutes);
+
+        // extra normalization, probably not necessary unless you get weird data
+        if ($seconds >= 60) {
+            $minutes += floor($seconds / 60.0);
+            $seconds -= 60 * floor($seconds / 60.0);
+        }
+
+        if ($minutes >= 60) {
+            $degrees += floor($minutes / 60.0);
+            $minutes -= 60 * floor($minutes / 60.0);
+        }
+
+        return ['degrees' => $degrees,
+                'minutes' => $minutes,
+                'seconds' => $seconds];
+    }
+
+    /**
+     * Tries to return GPS data from EXIF.
+     *
+     * @param array $exif The EXIF data.
+     *
+     * @return array|null The GPS coordinates or (null) if NOT available.
+     */
+    protected function getGpsFromEXIF($exif) {
+        if (\is_array($exif)) {
+            // extract data
+            $latData = null;
+            $latRef = null;
+            $lonData = null;
+            $lonRef = null;
+            foreach ($exif as $k => $v) {
+                switch (\trim(\strtolower($k))) {
+                    case 'gpslatitude':
+                        $latData = $v;
+                        break;
+
+                    case 'gpslatituderef':
+                        $latRef = \trim(\strtoupper($v));
+                        break;
+
+                    case 'gpslongitude':
+                        $lonData = $v;
+                        break;
+
+                    case 'gpslongituderef':
+                        $lonRef = \trim(\strtoupper($v));
+                        break;
+                }
+            }
+
+            $lat = $this->getGpsDataFromExifCoordinates($latData);
+            if (\is_array($lat)) {
+                $long = $this->getGpsDataFromExifCoordinates($lonData);
+                if (\is_array($long)) {
+                    $latDeg = ($lat['degrees'] + $lat['minutes'] / 60 + $lat['seconds'] / 3600);
+                    $latDeg += ($latRef == 'W' or $latRef == 'S') ? -1 : 1;
+
+                    $longDeg = ($long['degrees'] + $long['minutes'] / 60 + $long['seconds'] / 3600);
+                    $longDeg += ($lonRef == 'W' or $lonRef == 'S') ? -1 : 1;
+
+                    return ['lat'  => $latDeg,
+                            'long' => $longDeg];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns a list of image files and folders.
      *
      * @param GalleryExecutionContext $ctx The underlying execution context.
@@ -1298,11 +1418,30 @@ body {
 
                         $fullPath = \realpath($ctx->directory . $item);
                         if (\is_file($fullPath) && $this->isImageFile($fullPath)) {
+                            $title = null;
+
+                            $exif = $this->getEXIF($fullPath);
+                            $gps = $this->getGpsFromEXIF($exif);
+
+                            $iptc = $this->getIPTC($fullPath);
+                            if (!empty($iptc['caption'])) {
+                                $title = \trim($iptc['caption']);
+                            }
+
+                            if (empty($title)) {
+                                $title = $item;
+                            }
+                            else {
+                                $title .= ' (' . $item . ')';
+                            }
+
                             $filesAndFolders['files'][] = [
+                                'gps' => empty($gps) ? null : $gps,
+                                'iptc' => empty($iptc) ? null : $iptc,
                                 'name' => $item,
                                 'path' => './' . $item,
                                 'search' => $this->getSearchExpressions($fullPath),
-                                'title' => $item,
+                                'title' => $title,
                             ];
                         }
                         else if (\is_dir($fullPath)) {
@@ -1395,6 +1534,15 @@ body {
     }
 
     /**
+     * Returns the output encoding.
+     * 
+     * @return string The encoding.
+     */
+    protected function getOutputEncoding() {
+        return 'utf-8';
+    }
+    
+    /**
      * Tries to return a list of search expressions for a file or a folder.
      *
      * @param string $path The path of the file/folder.
@@ -1415,12 +1563,12 @@ body {
             }
 
             // EXIF
-            if (\function_exists("\\exif_read_data")) {
-                $exif = @\exif_read_data($path);
-                if (\is_array($exif)) {
-                    foreach ($exif as $k => $v) {
-                        // $expr[] = \sprintf('%s => %s', $k, $v);
-                    }
+            $exif = $this->getEXIF($path);
+            foreach ($exif as $k => $v) {
+                switch (\trim(\strtolower($k))) {
+                    case 'filename':
+                        $expr[] = $v;
+                        break;
                 }
             }
 
@@ -1457,6 +1605,27 @@ body {
         $expr = \array_unique($expr);
 
         return $expr;
+    }
+
+    /**
+     * Helper for converting a GPS string to a number.
+     *
+     * @param string $coordPart The coordinate string.
+     *
+     * @return float The string as number.
+     */
+    protected function gps2Num($coordPart) {
+        $parts = \explode('/', $coordPart);
+
+        if (\count($parts) < 1) {
+            return 0.0;
+        }
+
+        if (1 === \count($parts)) {
+            return (float)$parts[0];
+        }
+
+        return (float)$parts[0] / (float)$parts[1];
     }
 
     /**
@@ -1648,22 +1817,6 @@ body {
      * Outputs the page FOOTER.
      */
     protected function outputFooter() {
-?>
-<script type="text/javascript">
-
-jQuery(function() {
-    if ($SimpleGallery.events.pageLoaded) {
-        $SimpleGallery.events.pageLoaded();
-    }
-
-    if ($SimpleGallery.elements) {
-        $SimpleGallery.elements.body = jQuery('sg-body');
-    }
-});
-
-</script>
-<?php
-
         $jsFile = '';
         $styleFile = '';
         if (!empty($this->_config['files'])) {
@@ -1764,6 +1917,32 @@ jQuery(function() {
         <?php $this->outputImageBox(); ?>
 
         <?php $this->outputStyle(); ?>
+
+        <script type="text/javascript">
+
+jQuery(function() {
+    if ($SimpleGallery.elements) {
+        // $SimpleGallery.elements.body
+        Object.defineProperty($SimpleGallery.elements, 'body', {
+            get: function() {
+                return jQuery('sg-body');
+            }
+        });
+
+        // $SimpleGallery.elements.searchField
+        Object.defineProperty($SimpleGallery.elements, 'searchField', {
+            get: function() {
+                return jQuery('#sg-navbar-top .sg-search-form .sg-search-field');
+            }
+        });
+    }
+
+    if ($SimpleGallery.events.pageLoaded) {
+        $SimpleGallery.events.pageLoaded();
+    }
+});
+
+        </script>
 
         <script type="text/javascript">
             $SimpleGallery = {};
@@ -1876,8 +2055,8 @@ jQuery(function() {
                 }
 
                 var item = jQuery('<div class="col-xs-12 col-sm-6 col-md-4 sg-item sg-file-item">' +
-                                  '<div class="thumbnail sg-thumbnail">' +
-                                  '<a class="fancybox sg-imagebox" rel="gallery1">' +
+                                  '<div class="thumbnail fancybox sg-thumbnail">' +
+                                  '<a class="sg-imagebox" rel="galleryVisible">' +
                                   '<img alt="" />' +
                                   '</a>' +
                                   '<div class="caption sg-caption">' +
@@ -1903,14 +2082,19 @@ jQuery(function() {
                 if (file.name) {
                     item.find('.caption h3')
                         .text($.trim(file.name));
+
+                    item.find('.caption')
+                        .attr('title', $.trim(file.name));
+
+                    item.find('img')
+                        .attr('title', $.trim(file.name));
+                    item.find('img')
+                        .attr('alt', $.trim(file.name));
                 }
 
                 if (file.search && file.search.length > 0) {
                     item.find('.sg-search-expr')
                         .val(file.search.join(' '));
-
-                    console.log(item.find('.sg-search-expr')
-                        .val());
                 }
 
                 return item;
@@ -1985,7 +2169,7 @@ jQuery(function() {
             };
 
             $SimpleGallery.funcs.initSearchField = function() {
-                var searchField = jQuery('#sg-navbar-top .sg-search-form .sg-search-field');
+                var searchField = $SimpleGallery.elements.searchField;
 
                 var searchBtn = jQuery('#sg-navbar-top .sg-search-form .sg-search-btn');
                 searchBtn.off('click').click(function() {
@@ -2028,17 +2212,20 @@ jQuery(function() {
                                     if ($SimpleGallery.funcs.createFileAndFolderList) {
                                         var list = $SimpleGallery.funcs.createFileAndFolderList(ctx.data.data.folders, ctx.data.data.files);
                                         if (list) {
+                                            list.find('.sg-file-item').hide();
+
                                             list.appendTo(pageBody);
                                         }
 
                                         $SimpleGallery.funcs.setupImageBox(list);
+                                        $SimpleGallery.funcs.searchImages();
                                     }
                                     break;
                             }
                         },
 
                         'error': function(ctx) {
-                            console.log('ERROR: ' + ctx.error);
+
                         },
 
                         'complete': function(ctx) {
@@ -2057,10 +2244,17 @@ jQuery(function() {
 
                 $SimpleGallery.vars.isSearchingImages = true;
 
+                if (arguments.length < 1) {
+                    expr = $SimpleGallery.elements.searchField.val();
+                }
+
+                $SimpleGallery.vars.lastSearchExpr = expr;
+
                 expr = jQuery.trim(expr).toLowerCase();
                 var exprParts = expr.split(" ");
 
-                jQuery('.sg-folder-and-file-list .sg-item').each(function() {
+                var fileAndFolderList = jQuery('.sg-folder-and-file-list');
+                fileAndFolderList.find('.sg-item').each(function() {
                     var item = $(this);
 
                     var isVisible = true;
@@ -2079,16 +2273,17 @@ jQuery(function() {
                         }
                     }
 
+                    var imgBox = item.find('.sg-imagebox');
                     if (isVisible) {
+                        imgBox.attr('rel', 'galleryVisible');
                         item.show();
                     }
                     else {
                         item.hide();
+                        imgBox.attr('rel', 'galleryHidden');
                     }
                 });
 
-                //TODO
-                
                 $SimpleGallery.vars.isSearchingImages = false;
             };
 
@@ -2098,8 +2293,8 @@ jQuery(function() {
                 }
 
                 list.find('.sg-imagebox').fancybox({
-                    openEffect: 'none',
-                    closeEffect: 'none'
+                    'openEffect': 'none',
+                    'closeEffect': 'none',
                 });
             };
 
@@ -2107,6 +2302,7 @@ jQuery(function() {
 
             $SimpleGallery.vars.isLoadingImages = false;
             $SimpleGallery.vars.isSearchingImages = false;
+            $SimpleGallery.vars.lastSearchExpr = '';
         </script>
     </head>
 
@@ -2242,16 +2438,18 @@ jQuery(function() {
                 break;
             
             case 'get_image_files_and_folders':
-                \header('Content-type: application/json');
+                \header('Content-type: application/json; charset=' . $this->getOutputEncoding());
                 $foldersAndFiles = $this->getImageFoldersAndFiles($ctx);
                 if (empty($foldersAndFiles)) {
                     $foldersAndFiles = [];
                 }
 
-                echo \json_encode([
+                $arr = $this->toOutputEncoding([
                     'code' => 0,
                     'data' => $foldersAndFiles,
                 ]);
+
+                echo \json_encode($arr);
                 break;
 
             case 'image':
@@ -2312,6 +2510,62 @@ jQuery(function() {
         $this->outputHeader();
 
         $this->outputFooter();
+    }
+
+    /**
+     * Converts the data of an input value
+     * so that it can be used for output.
+     * 
+     * @param mixed $val The input value.
+     * 
+     * @return mixed The output value.
+     */
+    protected function toOutputEncoding($val) {
+        if (\is_array($val) || ($val instanceof \ArrayAccess)) {
+            foreach ($val as $k => $v) {
+                $val[$k] = $this->toOutputEncoding($v);
+            }
+        }
+        else if (\is_string($val)) {
+            $val = $this->toOutputString($val);
+        }
+
+        return $val;
+    }
+
+    /**
+     * Converts a string for output.
+     *
+     * @param string $str The input string.
+     *
+     * @return string|null The output string.
+     */
+    protected function toOutputString($str) {
+        if (null === $str) {
+            return null;
+        }
+
+        $str = (string)$str;
+
+        $enc = \trim(\strtoupper($this->getOutputEncoding()));
+        if ('' !== $enc) {
+            if (\function_exists("\\iconv")) {
+                if (\function_exists("\\iconv_get_encoding")) {
+                    $inputEnc = @\iconv_get_encoding('input_encoding');
+                }
+
+                if (empty($inputEnc)) {
+                    $inputEnc = $enc;
+                }
+
+                $newStr = @\iconv($inputEnc, $enc . '//IGNORE', $str);
+                if (false !== $newStr) {
+                    $str = $newStr;
+                }
+            }
+        }
+
+        return $str;
     }
 }
 

@@ -11,3 +11,6 @@ http://www.demo.vienna-pictures.com/details.php?image_id=44
 
 http://www.summitpost.org/test-this-image-contains-exif-data/769474
     - 769474.JPG
+
+http://www.exiv2.org/sample.html
+    - img_1771.jpg
