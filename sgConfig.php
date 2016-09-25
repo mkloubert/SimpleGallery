@@ -11,6 +11,10 @@ return [
         'class' => "\\MyExecutionContext",
     ],
 
+    'fileProvider' => [
+        'class' => "\\MyFileProvider",
+    ],
+
     'features' => [
         'allowFolders' => true,
     ],

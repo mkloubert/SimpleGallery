@@ -570,9 +570,9 @@ class Gallery {
      * @throws \Exception Something went wrong.
      */
     public function init($config) {
-        $me = $this;
-
         $this->_now = new \DateTime();
+        
+        $me = $this;
 
         $this->_config = $config;
 
@@ -625,8 +625,16 @@ class Gallery {
             'image/svg+xml' => 'svg',
         ];  //TODO: read from config, if available
 
-        //TODO: implement custom class
-        $this->_fileProvider = new GalleryFileProvider();
+        // file provider
+        if (!empty($this->_config['fileProvider'])) {
+            if (!empty($this->_config['fileProvider']['class'])) {
+                $fileProviderClassName = \trim($this->_config['fileProvider']['class']);
+            }
+        }
+        if (empty($fileProviderClassName)) {
+            $fileProviderClassName = GalleryFileProvider::class;
+        }
+        $this->_fileProvider = new $fileProviderClassName();
     }
 
     /**
