@@ -118,7 +118,9 @@ class Gallery {
         $me = $this;
 
         if (!empty($_SESSION['SG_FAVORITES'])) {
-            $favorites = $_SESSION['SG_FAVORITES'];
+            if (!empty($_SESSION['SG_FAVORITES'][SG_DIR_CURRENT])) {
+                $favorites = $_SESSION['SG_FAVORITES'][SG_DIR_CURRENT];
+            }
         }
 
         if (empty($favorites)) {
@@ -136,7 +138,7 @@ class Gallery {
         // cleanup
         $favorites = \array_filter($favorites, function($x) use ($ctx, $me) {
             return !empty($x) &&
-            $me->isInScriptDirectory($ctx, $x);
+                   $me->isInScriptDirectory($ctx, $x);
         });
         $favorites = \array_unique($favorites);
 
@@ -1248,13 +1250,16 @@ jQuery(function() {
                                       '<div class="col sg-files-col">' +
                                       '<div class="panel panel-primary">' +
                                       '<div class="panel-heading">Images</div>' +
-                                      '<div class="panel-body"><div class="row sg-file-list"></div></div>' +
+                                      '<div class="panel-body">' +
+                                      '<div class="row sg-file-list"></div>' +
+                                      '<div class="container sg-no-items"></div>' +
+                                      '</div>' +
                                       '</div>' +
                                       '</div>' +
                                       '</div>');
                     
-                    var foldersCol = list.find('.sg-folders-col');                    
-                    var filesCol = list.find('.sg-files-col');                  
+                    var foldersCol = list.find('.sg-folders-col');
+                    var filesCol = list.find('.sg-files-col');       
 
                     var folderList = list.find('.sg-folder-list');
                     var isFolderListVisible = true;
@@ -1277,6 +1282,7 @@ jQuery(function() {
                     }
 
                     var fileList = list.find('.sg-file-list');
+                    fileList.hide();
                     var isFileListVisible = true;
                     if ($SimpleGallery.funcs.createFileItem) {
                         if (files.length > 0) {
@@ -1313,6 +1319,10 @@ jQuery(function() {
                             filesCol.addClass('col-xs-12');
                         }
                     }
+
+                    var noFiles = filesCol.find('.sg-no-items');
+                    noFiles.text('No item matches your query.');
+                    noFiles.hide();
 
                     return list;
                 }
@@ -1472,6 +1482,14 @@ jQuery(function() {
                 var exprParts = expr.split(" ");
 
                 var fileAndFolderList = jQuery('.sg-folder-and-file-list');
+                
+                var fileList = fileAndFolderList.find('.sg-file-list');
+                fileList.hide();
+                
+                var noItems = fileAndFolderList.find('.sg-no-items');
+                noItems.hide();
+                
+                var visibleItems = 0;
                 fileAndFolderList.find('.sg-file-item').each(function() {
                     var item = $(this);
 
@@ -1493,10 +1511,16 @@ jQuery(function() {
                             //TODO: log
                         }
                         
-                        if (':fav' === expr) {
+                        if (':favs' === expr) {
                             isVisible = false;                            
                             if (file) {
                                 isVisible = file.isFav ? true : false;
+                            }
+                        }
+                        else if (':nofavs' === expr || ':!favs' === expr) {
+                            isVisible = false;                            
+                            if (file) {
+                                isVisible = file.isFav ? false : true;
                             }
                         }
                         else if (':gps' === expr) {
@@ -1521,6 +1545,8 @@ jQuery(function() {
 
                     var imgBox = item.find('.sg-imagebox');
                     if (isVisible) {
+                        ++visibleItems;
+                        
                         imgBox.attr('rel', 'sgGalleryVisible');
                         item.show();
                     }
@@ -1529,6 +1555,13 @@ jQuery(function() {
                         imgBox.attr('rel', 'sgGalleryHidden');
                     }
                 });
+                
+                if (visibleItems > 0) {
+                    fileList.show();
+                }
+                else {
+                    noItems.show();
+                }
 
                 $SimpleGallery.vars.isSearchingImages = false;
             };
@@ -1921,8 +1954,12 @@ jQuery(function() {
         if (!\is_array($favorites)) {
             $favorites = [];
         }
+        
+        if (empty($_SESSION['SG_FAVORITES'])) {
+            $_SESSION['SG_FAVORITES'] = [];
+        }
 
-        $_SESSION['SG_FAVORITES'] = $favorites;
+        $_SESSION['SG_FAVORITES'][SG_DIR_CURRENT] = $favorites;
     }
 }
 
