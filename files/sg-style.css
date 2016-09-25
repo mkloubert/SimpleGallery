@@ -95,3 +95,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
+.sg-folder-and-file-list .sg-files-col .sg-btns .btn {
+    margin-left: 4px;
+}
