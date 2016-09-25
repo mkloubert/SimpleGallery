@@ -103,7 +103,7 @@ class Gallery {
                         try {
                             if (\is_file($file)) {
                                 $zip = new \ZipArchive();
-                                if ($zip->open($file, \ZipArchive::CREATE)) {
+                                if (true === $zip->open($file, \ZipArchive::CREATE)) {
                                     foreach ($filesToZip as $f) {
                                         $pathInfo = @\pathinfo($f);
                                         if (!\is_array($pathInfo)) {
@@ -2499,7 +2499,7 @@ class GalleryFileProvider {
                     if (\is_file($file)) {
                         if (false !== \file_put_contents($file, \base64_decode($this->getZipBase64()))) {
                             $zip = new \ZipArchive();
-                            if ($zip->open($file)) {
+                            if (true === $zip->open($file)) {
                                 $this->_zip = $zip;
                             }
                         }
