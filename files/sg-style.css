@@ -1,0 +1,66 @@
+
+body {
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+#sg-navbar-top .sg-search-form .input-group {
+    line-height: 70px;
+    margin: 0;
+    vertical-align: middle;
+}
+
+#sg-navbar-top .sg-search-form input[type="text"] {
+    height: 39px;
+}
+
+#sg-navbar-bottom .container {
+    line-height: 70px;
+    text-align: center;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-caption {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 96px;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail {
+    padding: 1em;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail .sg-btns a {
+    margin: 0px 4px;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail .sg-caption h3 {
+    font-size: 1em;
+}
+
+.sg-folder-and-file-list .sg-file-item .sg-thumbnail img {
+    height: 10em;
+}
+
+.sg-folder-and-file-list .sg-folder-item {
+    cursor: pointer;
+}
+
+.sg-folder-and-file-list .sg-folder-item .media-body {
+    vertical-align: middle;
+}
+
+.sg-folder-and-file-list .sg-folder-item .media-object {
+    padding: 0px 8px;
+    width: 64px;
+    vertical-align: top;
+}
+
+#sg-navbar-top .sg-search-form .sg-search-btn {
+    cursor: pointer;
+}
+
+#sg-body .sg-current-directory .sg-non-current {
+    cursor: pointer;
+}
