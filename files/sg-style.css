@@ -64,3 +64,34 @@ body {
 #sg-body .sg-current-directory .sg-non-current {
     cursor: pointer;
 }
+
+#sg-image-info-modal .sg-tab {
+    padding: 8px;
+}
+
+#sg-image-info-modal .sg-exif-table td.sg-left {
+    width: 128px;
+}
+
+#sg-image-info-modal .sg-exif-table td.sg-right {
+    word-wrap: break-word !important;
+}
+
+#sg-image-info-modal .sg-iptc-table td.sg-left {
+    width: 128px;
+}
+
+#sg-image-info-modal .sg-iptc-table td.sg-right {
+    word-wrap: break-word !important;
+}
+
+#sg-image-info-modal .sg-tab {
+    overflow: auto;
+}
+
+.sg-ajax-loader {
+    clear: both;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

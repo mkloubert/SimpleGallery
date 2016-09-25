@@ -17,3 +17,6 @@ http://www.exiv2.org/sample.html
 
 https://www.iconfinder.com/icons/17259/folder_image_icon
     - files/folder.png
+
+http://www.ajaxload.info/
+    - ajax-loader.gif
