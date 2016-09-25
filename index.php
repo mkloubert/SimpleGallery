@@ -1715,6 +1715,8 @@ jQuery(function() {
                                         zb.addClass('btn-primary');
                                     }
                                 });
+                                
+                                $SimpleGallery.funcs.searchImages();
                             })
                         }
                         else {
