@@ -5,18 +5,30 @@
 defined("SG_INDEX") or die();
 
 return [
-    'class' => "\\MyGallery",
-
     'context' => [
         'class' => "\\MyExecutionContext",
+    ],
+
+    'features' => [
+        'allowFolders' => true,
     ],
 
     'fileProvider' => [
         'class' => "\\MyFileProvider",
     ],
 
-    'features' => [
-        'allowFolders' => true,
+    'filters' => [
+        /* 'files' => function($path, $ctx) {
+            return false;
+        }, */
+
+        /* 'folders' => function($path, $ctx) {
+            return false;
+        }, */
+    ],
+
+    'gallery' => [
+        'class' => "\\MyGallery",
     ],
 
     'users' => [

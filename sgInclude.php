@@ -1,8 +1,8 @@
 <?php
 
-/* custom logic */
+/* custom / additional logic */
 
-defined("SG_INDEX") or die();
+\defined("SG_INDEX") or die();
 
 class MyGallery extends \MarcelJoachimKloubert\SimpleGallery\Gallery {
 

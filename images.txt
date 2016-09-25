@@ -16,4 +16,4 @@ http://www.exiv2.org/sample.html
     - img_1771.jpg
 
 https://www.iconfinder.com/icons/17259/folder_image_icon
-    - folder.png (embedded; s. index.php)
+    - files/folder.png
